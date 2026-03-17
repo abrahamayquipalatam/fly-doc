@@ -1,4 +1,4 @@
-import { FLOTA_FOLDER_IDS } from '../config/constants';
+import { FLOTA_FOLDER_IDS } from '@/config/constants';
 import { drive } from '../lib/google-drive';
 
 /**

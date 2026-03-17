@@ -1,6 +1,6 @@
+import { GOOGLE_SHEET_ID, EMAIL, FLOTA_FOLDER_IDS } from '@/config/constants';
 import { NextRequest, NextResponse } from 'next/server';
 import { sheets } from '../../../lib/google-drive';
-import { GOOGLE_SHEET_ID, EMAIL, FLOTA_FOLDER_IDS } from '../../../config/constants';
 
 interface UserInfo {
   name: string;

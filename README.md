@@ -29,7 +29,8 @@ SkyVault is a Windows 11 style file explorer for Google Drive, providing a read-
 ### New API endpoints
 
 - `GET /api/user` - returns `{ name, email, flota, folderId }` derived from the DB sheet using the EMAIL constant.
-- `POST /api/control` - accepts `{ userName, files }` and ensures the CONTROL sheet contains a row for each file with `was_read` false.
+- `GET /api/folders/[id]?userName=<name>` - lists files in a folder; if `userName` is supplied the server will automatically insert any unseen file names into the CONTROL sheet (was_read=false). This ensures the spreadsheet is filled in real time as users browse.
+- `POST /api/control` - accepts `{ userName, files }` and ensures the CONTROL sheet contains a row for each file with `was_read` false.  This endpoint is still usable for manual initialization but usually the GET folder and download hooks handle it.
 - `GET /api/compliance?userName=<name>` - returns current compliance status using CONTROL sheet data.
 
 3. **Run the Development Server**:

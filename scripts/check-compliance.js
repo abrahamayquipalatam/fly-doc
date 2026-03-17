@@ -1,7 +1,7 @@
 import cron from 'node-cron';
 import { downloads } from '../lib/db.js';
 import { sheets } from '../lib/google-drive.js';
-import { GOOGLE_SHEET_ID } from '../config/constants.js';
+import { GOOGLE_SHEET_ID } from '@/config/constants.js';
 
 cron.schedule('0 * * * *', async () => { // every hour
   console.log('Checking compliance...');

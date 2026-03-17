@@ -1,6 +1,6 @@
+import { GOOGLE_SHEET_ID } from '@/config/constants';
 import { sheets } from './google-drive';
 
-import { GOOGLE_SHEET_ID } from '../config/constants';
 const SHEET_ID = GOOGLE_SHEET_ID;
 
 /**

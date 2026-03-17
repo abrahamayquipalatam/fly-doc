@@ -1,8 +1,8 @@
+import { DEADLINE_HOURS } from '@/config/constants';
 import { NextRequest, NextResponse } from 'next/server';
 import { drive } from '../../../../../lib/google-drive';
 import { downloads } from '../../../../../lib/db';
-import { DEADLINE_HOURS } from '../../../../../config/constants';
-import { markFileRead } from '../../../../../lib/control';
+import { ensureControlRows, markFileRead } from '../../../../../lib/control';
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id: fileId } = await params;
@@ -31,6 +31,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         }
 
         const file = fileResponse.data;
+        let fileName = file.name || '';
 
         // Register download
         const downloadedAt = new Date();
@@ -43,12 +44,16 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             deadline: deadline.toISOString(),
         });
 
-        // update control sheet if caller provided a userName
+        // ensure control tracking happens before marking as read
         const userName = searchParams.get('userName');
         if (userName) {
           try {
-            // always use the actual file name we got from Drive
-            await markFileRead(userName, file.name || '');
+            await ensureControlRows(userName, [{ name: fileName }]);
+          } catch (err) {
+            console.error('failed to ensure control row pre-mark:', err);
+          }
+          try {
+            await markFileRead(userName, fileName);
           } catch (err) {
             console.error('failed to mark control row:', err);
           }
@@ -59,7 +64,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
         let streamData: any;
         let mimeType = file.mimeType || 'application/octet-stream';
-        let fileName = file.name;
 
         if (isExportable) {
             // Google application files must be exported (for example to PDF)
@@ -69,7 +73,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             );
             streamData = exportResponse.data;
             mimeType = 'application/pdf';
-            if (!fileName?.toLowerCase().endsWith('.pdf')) {
+            if (!fileName.toLowerCase().endsWith('.pdf')) {
                 fileName = `${fileName}.pdf`;
             }
         } else {

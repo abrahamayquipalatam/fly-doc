@@ -8,11 +8,13 @@ export const FLOTA_FOLDER_IDS: Record<string, string> = {
 // hardcoded test email for the current session
 export const EMAIL = 'abrahamayquipa2000@gmail.com';
 
-// the list of required file ids is no longer maintained manually; compliance is driven by `CONTROL` sheet
-// kept here only for backwards compatibility with any old code that might reference it
+// the list of required file ids is no longer maintained manually; compliance is driven by the
+// `CONTROL` sheet.  all files that can be downloaded should be treated as "required" and
+// are populated in CONTROL automatically when a user browses or downloads them.  this
+// constant exists only for backwards compatibility and is effectively unused.
 export const REQUIRED_FILE_IDS: string[] = [];
 
-export const DEADLINE_HOURS = 72;
+export const DEADLINE_HOURS = 1;
 
 // spreadsheet used both for DB lookups and CONTROL tracking
 export const GOOGLE_SHEET_ID = '1A8wfRvUkrEof8z_7ToMSE9v_h71Q_AKs44IoAsAx92E'; // updated to new shared workbook

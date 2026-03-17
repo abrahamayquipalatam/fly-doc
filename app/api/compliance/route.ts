@@ -1,6 +1,6 @@
+import { DEADLINE_HOURS, GOOGLE_SHEET_ID } from '@/config/constants';
 import { NextRequest, NextResponse } from 'next/server';
 import { downloads } from '../../../lib/db';
-import { DEADLINE_HOURS, GOOGLE_SHEET_ID } from '../../../config/constants';
 import { sheets } from '../../../lib/google-drive';
 
 // compliance is derived from the CONTROL sheet entries for the given user

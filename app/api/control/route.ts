@@ -1,5 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { GOOGLE_SHEET_ID } from '@/config/constants';
 import { sheets } from '../../../lib/google-drive';
+import { NextRequest, NextResponse } from 'next/server';
 
 // Only POST is used for now: initialize control rows for a user
 export async function POST(request: NextRequest) {
@@ -38,7 +39,7 @@ export async function POST(request: NextRequest) {
 
     if (toAppend.length > 0) {
       await sheets.spreadsheets.values.append({
-        spreadsheetId: sheetId,
+        spreadsheetId: GOOGLE_SHEET_ID,
         range: 'CONTROL!A:C',
         valueInputOption: 'RAW',
         requestBody: { values: toAppend },

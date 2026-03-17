@@ -6,7 +6,7 @@ import ComplianceSidebar from '../components/ComplianceSidebar';
 import FileList from '../components/FileList';
 import Breadcrumb from '../components/Breadcrumb';
 import PreviewModal from '../components/PreviewModal';
-import { FLOTA_FOLDER_IDS } from '../config/constants';
+import { FLOTA_FOLDER_IDS } from '@/config/constants';
 import { Icon } from './Icon';
 
 interface FileItem {

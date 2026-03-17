@@ -120,9 +120,12 @@ const ComplianceSidebar = ({ userId, userName }: { userId: string; userName?: st
         borderRadius: '6px',
         border: '1px solid var(--border-color)',
       }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', alignItems: 'flex-end' }}>
-          <span style={{ fontSize: '1.8rem', fontWeight: 700 }}>{Math.round(progress)}%</span>
-          <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{compliance.downloaded} / {compliance.total} Archivos</span>
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '1.2rem', marginBottom: '8px' }}>Avance de descargas</p>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '5px' }}>
+            <span style={{ fontSize: '1.8rem', fontWeight: 700 }}>{Math.round(progress)}%</span>
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{compliance.downloaded}/{compliance.total} Archivos</span>
+          </div>
         </div>
         <div className="win11-progress">
           <div className="win11-progress-bar" style={{ width: `${progress}%` }}></div>
@@ -139,7 +142,7 @@ const ComplianceSidebar = ({ userId, userName }: { userId: string; userName?: st
         gap: '8px'
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: '0.75rem', fontWeight: 700, color: statusColor }}>ESTADO: {status}</span>
+          <span style={{ fontSize: '1.2rem', fontWeight: 700, color: statusColor }}>ESTADO: {status}</span>
           <div style={{ fontSize: '1.2rem' }}>
             {hoursLeft > 24 ? (
               <Icon name="check-circle" size={20} color="#4CAF50" />
@@ -150,21 +153,22 @@ const ComplianceSidebar = ({ userId, userName }: { userId: string; userName?: st
             )}
           </div>
         </div>
-        <div style={{ fontSize: '1.1rem', fontWeight: 700, fontFamily: 'monospace', letterSpacing: '1px' }}>
+        <p style={{ color: statusColor, fontSize: '0.85rem' }}>Tiempo Restante antes de mandar reporte a Jefatura</p>
+        <div style={{ fontSize: '2.5rem', fontWeight: 700, fontFamily: 'monospace', letterSpacing: '-3px' }}>
           {remainingTime > 0 ? (
             <span>{formatTime(remainingTime)}</span>
           ) : (
-            <span style={{ color: '#F44336' }}>TIEMPO AGOTADO</span>
+            <span style={{ color: '#F44336', fontSize: '1.7rem' }}>TIEMPO AGOTADO</span>
           )}
         </div>
         {remainingTime <= 0 && (
-          <p style={{ fontSize: '0.75rem', color: '#F44336' }}>Se ha reportado la falta de lectura a la Jefatura Pilotos.</p>
+          <p style={{ fontSize: '0.75rem', color: '#F44336' }}>Se reportó la falta de descarga de archivos a Jefatura</p>
         )}
       </section>
 
       <section>
-        <h3 style={{ fontSize: '0.9rem', fontWeight: 600, marginBottom: '16px' }}>Archivos Obligatorios</h3>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <h3 style={{ fontSize: '1.2rem', fontWeight: 600, marginBottom: '16px' }}>Archivos que debes descargar</h3>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
           {(compliance.requiredFiles || []).map((file, idx) => (
             <div key={file.name || idx} style={{
               display: 'flex',
@@ -173,7 +177,7 @@ const ComplianceSidebar = ({ userId, userName }: { userId: string; userName?: st
               padding: '10px 12px',
               borderRadius: '6px',
               background: 'var(--explorer-bg)',
-              border: file.downloaded ? '1px solid var(--accent-color)30' : '1px solid var(--border-color)',
+              border: '1px solid var(--border-color)',
               fontSize: '0.85rem'
             }}>
               <div style={{
@@ -189,7 +193,7 @@ const ComplianceSidebar = ({ userId, userName }: { userId: string; userName?: st
                 fontSize: '12px',
                 fontWeight: 'bold'
               }}>
-                {file.downloaded && <Icon name="check-circle" size={14} color="white" />}
+                {file.downloaded && <span>✓</span>}
               </div>
               <span style={{
                 flex: 1,

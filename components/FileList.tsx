@@ -101,7 +101,7 @@ const FileList = ({ files, onFolderClick, onFileClick, userId, userName, viewMod
             <tr key={file.id} className="transition-standard pointer">
               <td onClick={() => isFolder(file) ? onFolderClick(file) : onFileClick(file)}>
                 <div className="flex items-center" style={{ display: 'flex', alignItems: 'center', gap: '10px', overflow: 'hidden' }}>
-                  <Win11Icon type={file.mimeType} size={22} />
+                  <Win11Icon type={file.mimeType} size={28} />
                   <span style={{
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
