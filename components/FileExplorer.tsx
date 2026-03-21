@@ -6,6 +6,7 @@ import ComplianceSidebar from '../components/ComplianceSidebar';
 import FileList from '../components/FileList';
 import Breadcrumb from '../components/Breadcrumb';
 import PreviewModal from '../components/PreviewModal';
+import Toast from '../components/Toast';
 import { FLOTA_FOLDER_IDS } from '@/config/constants';
 import { Icon } from './Icon';
 
@@ -30,6 +31,7 @@ const FileExplorer = ({ userId, userEmail }: { userId: string, userEmail: string
   const [userName, setUserName] = useState<string>('');
   const [flotaFolderId, setFlotaFolderId] = useState<string>('');
   const [flota, setFlota] = useState<string>('');
+  const [isFetchingFile, setIsFetchingFile] = useState(false);
 
   // fetch user info (name, flota, folderId) once at startup
   useEffect(() => {
@@ -59,7 +61,7 @@ const FileExplorer = ({ userId, userEmail }: { userId: string, userEmail: string
       .then(async data => {
         const fetched = data.files || [];
         setFiles(fetched);
-        
+
         // Update breadcrumb with official folder name from API
         setBreadcrumb(prev => {
           const idx = prev.findIndex(item => item.id === currentFolder);
@@ -101,6 +103,22 @@ const FileExplorer = ({ userId, userEmail }: { userId: string, userEmail: string
     const newBreadcrumb = breadcrumb.slice(0, index + 1);
     setBreadcrumb(newBreadcrumb);
     setCurrentFolder(newBreadcrumb[newBreadcrumb.length - 1].id);
+  };
+
+  const handleFileAction = (file: FileItem, action: 'preview' | 'download') => {
+    setIsFetchingFile(true);
+    
+    if (action === 'preview') {
+      setPreviewFile(file);
+      // Ocultar toast después de un momento corto para dar tiempo a que se abra el modal
+      setTimeout(() => setIsFetchingFile(false), 800);
+    } else {
+      const downloadUrl = `/api/files/${file.id}/download?userId=${userId}${userName ? `&userName=${encodeURIComponent(userName)}` : ''}`;
+      window.location.href = downloadUrl;
+      window.dispatchEvent(new Event('file-downloaded'));
+      // Ocultar toast después de un momento
+      setTimeout(() => setIsFetchingFile(false), 2000);
+    }
   };
 
   const handleSidebarFolderSelect = (id: string, name: string) => {
@@ -169,7 +187,7 @@ const FileExplorer = ({ userId, userEmail }: { userId: string, userEmail: string
               </button>
               <Breadcrumb breadcrumb={breadcrumb} onClick={handleBreadcrumbClick} />
             </div>
-            
+
             <div style={{
               marginLeft: 'auto',
               display: 'flex',
@@ -198,15 +216,16 @@ const FileExplorer = ({ userId, userEmail }: { userId: string, userEmail: string
               className="win11-hover"
               style={{
                 display: 'none', // Shown only on tablet via media query (handled by class)
-                padding: '8px',
+                padding: '6px',
                 borderRadius: '4px',
                 border: '1px solid var(--border-color)',
               }}
               id="compliance-toggle-btn"
             >
-              <Icon name="info" size={20} color={complianceVisible ? 'var(--accent-color)' : 'inherit'} />
+              <Icon name="analytics" size={20} color='#bdbdbdff' />
             </button>
-            <style dangerouslySetInnerHTML={{ __html: `
+            <style dangerouslySetInnerHTML={{
+              __html: `
               @media (max-width: 1024px) {
                 #compliance-toggle-btn { display: flex !important; }
               }
@@ -265,29 +284,54 @@ const FileExplorer = ({ userId, userEmail }: { userId: string, userEmail: string
           <FileList
             files={files.filter(f => f.name.toLowerCase().includes(searchTerm.toLowerCase()))}
             onFolderClick={handleFolderClick}
-            onFileClick={(file: FileItem) => setPreviewFile(file)}
+            onFileClick={(file: FileItem) => handleFileAction(file, 'preview')}
+            onDownload={(file: FileItem) => handleFileAction(file, 'download')}
             userId={userId}
             userName={userName}
             viewMode={viewMode}
           />
         )}
-
-        {previewFile && (
-          <PreviewModal file={previewFile} onClose={() => setPreviewFile(null)} userId={userId} userName={userName} />
-        )}
       </main>
+
+      {/* Compliance Sidebar Overlay - Only shown on mobile/tablet when sidebar is visible */}
+      <div
+        onClick={() => setComplianceVisible(false)}
+        className={`compliance-overlay ${complianceVisible ? 'visible' : ''}`}
+        style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0,0,0,0.4)',
+          backdropFilter: 'blur(4px)',
+          zIndex: 100,
+          display: 'none',
+          cursor: 'pointer'
+        }}
+      />
 
       {/* Compliance Sidebar - On desktop it's fixed, on tablet it can be toggled */}
       <aside className={`compliance-container ${complianceVisible ? 'visible' : ''}`} style={{
         height: '100%',
-        zIndex: 10,
+        zIndex: 101,
         transition: 'transform 0.3s ease-in-out',
         background: 'var(--bg-color)',
       }}>
-        <ComplianceSidebar userId={userId} userName={userName} />
+        <ComplianceSidebar userId={userId} userName={userName} onClose={() => setComplianceVisible(false)} />
       </aside>
 
-      <style dangerouslySetInnerHTML={{ __html: `
+      {previewFile && (
+        <PreviewModal 
+          file={previewFile} 
+          onClose={() => setPreviewFile(null)} 
+          userId={userId} 
+          userName={userName} 
+          onDownload={() => handleFileAction(previewFile as any, 'download')}
+        />
+      )}
+
+      <Toast isVisible={isFetchingFile} message="Obteniendo archivo..." />
+
+      <style dangerouslySetInnerHTML={{
+        __html: `
         @media (max-width: 1024px) {
           .compliance-container {
             position: absolute;
@@ -299,6 +343,9 @@ const FileExplorer = ({ userId, userEmail }: { userId: string, userEmail: string
           .compliance-container.visible {
             transform: translateX(0);
           }
+          .compliance-overlay.visible {
+            display: block !important;
+          }
         }
         @media (min-width: 1025px) {
           .compliance-container {
@@ -306,6 +353,13 @@ const FileExplorer = ({ userId, userEmail }: { userId: string, userEmail: string
             transform: none !important;
             position: relative !important;
           }
+          .compliance-overlay {
+            display: none !important;
+          }
+        }
+        @keyframes fade-in {
+          from { opacity: 0; }
+          to { opacity: 1; }
         }
       `}} />
     </div>

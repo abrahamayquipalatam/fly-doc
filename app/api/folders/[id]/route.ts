@@ -11,19 +11,20 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   }
 
   try {
-    const response = await drive.files.list({
-      q: `'${folderId}' in parents and trashed = false`,
-      fields: 'files(id, name, mimeType, thumbnailLink, modifiedTime, size, webViewLink)',
-      orderBy: 'name',
-    });
+    // Fetch files and folder name in parallel
+    const [response, folderRes] = await Promise.all([
+      drive.files.list({
+        q: `'${folderId}' in parents and trashed = false`,
+        fields: 'files(id, name, mimeType, thumbnailLink, modifiedTime, size, webViewLink)',
+        orderBy: 'name',
+      }),
+      drive.files.get({
+        fileId: folderId,
+        fields: 'name',
+      })
+    ]);
 
     const files = response.data.files || [];
-
-    // Fetch folder name for breadcrumbs
-    const folderRes = await drive.files.get({
-      fileId: folderId,
-      fields: 'name',
-    });
     const folderName = folderRes.data.name;
 
     // If the caller supplied a userName, ensure those files are tracked in CONTROL

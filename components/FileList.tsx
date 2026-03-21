@@ -15,12 +15,13 @@ interface FileListProps {
   files: FileItem[];
   onFolderClick: (file: FileItem) => void;
   onFileClick: (file: FileItem) => void;
+  onDownload: (file: FileItem) => void;
   userId: string;
   userName?: string;
   viewMode?: 'list' | 'grid';
 }
 
-const FileList = ({ files, onFolderClick, onFileClick, userId, userName, viewMode = 'list' }: FileListProps) => {
+const FileList = ({ files, onFolderClick, onFileClick, onDownload, userId, userName, viewMode = 'list' }: FileListProps) => {
   const formatSize = (size?: string) => {
     if (!size) return '---';
     const bytes = parseInt(size);
@@ -96,26 +97,27 @@ const FileList = ({ files, onFolderClick, onFileClick, userId, userName, viewMod
 
   return (
     <div className="explorer-view" style={{ overflowY: 'auto', height: '100%' }}>
-      <table className="explorer-table no-select" style={{ width: '100%' }}>
+      <table className="explorer-table no-select" style={{ width: '100%', tableLayout: 'fixed' }}>
         <thead>
           <tr>
-            <th style={{ width: 'auto', minWidth: '150px' }}>Nombre</th>
+            <th style={{ width: '65%' }}>Nombre</th>
             <th className="hide-on-tablet" style={{ width: '25%' }}>Fecha de modificación</th>
             <th className="hide-on-tablet" style={{ width: '15%' }}>Tamaño</th>
-            <th style={{ width: '160px' }}>Acciones</th>
+            <th className="actions-column" style={{ width: '160px' }}>Acciones</th>
           </tr>
         </thead>
         <tbody>
           {sortedFiles.map(file => (
             <tr key={file.id} className="transition-standard pointer">
               <td onClick={() => isFolder(file) ? onFolderClick(file) : onFileClick(file)}>
-                <div className="flex items-center" style={{ display: 'flex', alignItems: 'center', gap: '10px', overflow: 'hidden' }}>
+                <div className="flex items-center" style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
                   <Win11Icon type={file.mimeType} size={28} />
                   <span style={{
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap',
-                    fontWeight: '400'
+                    fontWeight: '400',
+                    fontSize: '0.9rem'
                   }} title={file.name}>{file.name}</span>
                 </div>
               </td>
@@ -125,46 +127,49 @@ const FileList = ({ files, onFolderClick, onFileClick, userId, userName, viewMod
               <td className="hide-on-tablet" style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
                 {isFolder(file) ? '' : formatSize(file.size)}
               </td>
-              <td>
-                <div className="flex items-center" style={{ display: 'flex', gap: '6px', flexWrap: 'nowrap' }}>
+              <td className="actions-cell">
+                <div className="flex items-center" style={{ display: 'flex', gap: '6px', flexWrap: 'nowrap', justifyContent: 'flex-start' }}>
                   {!isFolder(file) && (
                     <>
-                      <a
-                        href={`/api/files/${file.id}/download?userId=${userId}${userName ? `&userName=${encodeURIComponent(userName)}` : ''}`}
-                        className="win11-hover"
+                      <button
+                        className="win11-hover action-btn download-btn"
+                        title="Descargar"
                         style={{
-                          padding: '5px 8px',
+                          padding: '6px 10px',
                           border: '1px solid var(--border-color)',
                           borderRadius: '4px',
                           textDecoration: 'none',
-                          fontSize: '0.7rem',
+                          fontSize: '0.75rem',
                           fontWeight: '500',
                           color: 'var(--accent-color)',
                           display: 'flex',
                           flexDirection: 'row',
                           alignItems: 'center',
-                          gap: '4px',
-                          whiteSpace: 'nowrap'
+                          gap: '6px',
+                          whiteSpace: 'nowrap',
+                          background: 'transparent',
+                          cursor: 'pointer'
                         }}
                         onClick={(e) => {
                           e.stopPropagation();
-                          window.dispatchEvent(new Event('file-downloaded'));
+                          onDownload(file);
                         }}
                       >
-                        <Icon name="download" size={14} />
-                        Descargar
-                      </a>
+                        <Icon name="download" size={16} />
+                        <span className="btn-text">Descargar</span>
+                      </button>
                       <button
-                        className="win11-hover"
+                        className="win11-hover action-btn preview-btn"
+                        title="Ver"
                         style={{
-                          padding: '5px 8px',
+                          padding: '6px 10px',
                           border: '1px solid var(--border-color)',
                           borderRadius: '4px',
-                          fontSize: '0.7rem',
+                          fontSize: '0.75rem',
                           display: 'flex',
                           flexDirection: 'row',
                           alignItems: 'center',
-                          gap: '4px',
+                          gap: '6px',
                           whiteSpace: 'nowrap',
                           background: 'transparent',
                           color: 'inherit',
@@ -175,8 +180,8 @@ const FileList = ({ files, onFolderClick, onFileClick, userId, userName, viewMod
                           onFileClick(file);
                         }}
                       >
-                        <Icon name="eye" size={14} />
-                        Ver
+                        <Icon name="eye" size={16} />
+                        <span className="btn-text">Ver</span>
                       </button>
                     </>
                   )}
@@ -193,6 +198,16 @@ const FileList = ({ files, onFolderClick, onFileClick, userId, userName, viewMod
           )}
         </tbody>
       </table>
+      <style dangerouslySetInnerHTML={{
+        __html: `
+        @media (max-width: 640px) {
+          .actions-column { width: 80px !important; }
+          .btn-text { display: none; }
+          .action-btn { padding: 8px !important; }
+          .explorer-table td { padding: 8px 10px !important; }
+          .explorer-table th { padding: 10px 10px !important; }
+        }
+      `}} />
     </div>
   );
 };

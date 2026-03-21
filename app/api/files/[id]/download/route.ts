@@ -46,7 +46,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
         // ensure control tracking happens before marking as read
         const userName = searchParams.get('userName');
-        if (userName) {
+        if (userName && !preview) { // Solo marcar si no es previsualización
           try {
             await ensureControlRows(userName, [{ name: fileName }]);
           } catch (err) {

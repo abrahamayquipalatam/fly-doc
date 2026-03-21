@@ -220,7 +220,7 @@ export function CommandPalette() {
                             </div>
                             <div className="flex items-center gap-2">
                                 <Icon name="command" size={12} className="text-neutral-300" />
-                                <span className="text-[10px] font-medium text-neutral-300 tracking-wid uppercase">SkyVault OS</span>
+                                <span className="text-[10px] font-medium text-neutral-300 tracking-wid uppercase">FlyDoc OS</span>
                             </div>
                         </div>
                     </motion.div>

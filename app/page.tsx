@@ -24,7 +24,7 @@ export default function Home() {
     if (storedEmail) {
       setUserEmail(storedEmail);
     }
-    
+
     setIsReady(true);
   }, []);
 
@@ -38,7 +38,7 @@ export default function Home() {
       <div className="flex-center" style={{ height: '100vh', background: 'var(--bg-color)', color: 'var(--text-secondary)' }}>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
           <div className="animate-spin" style={{ width: '32px', height: '32px', border: '3px solid var(--accent-color)', borderTopColor: 'transparent', borderRadius: '50%' }}></div>
-          <p style={{ fontSize: '0.9rem' }}>Iniciando SkyVault Explorer...</p>
+          <p style={{ fontSize: '0.9rem' }}>Iniciando FlyDoc...</p>
         </div>
       </div>
     );
@@ -50,9 +50,9 @@ export default function Home() {
 
   return (
     <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ flex: 1, overflow: 'hidden' }}>
-            <FileExplorer userId={userId} userEmail={userEmail} />
-        </div>
+      <div style={{ flex: 1, overflow: 'hidden' }}>
+        <FileExplorer userId={userId} userEmail={userEmail} />
+      </div>
     </div>
   );
 }

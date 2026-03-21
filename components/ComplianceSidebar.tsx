@@ -17,7 +17,7 @@ interface ComplianceData {
   requiredFiles: RequiredFile[];
 }
 
-const ComplianceSidebar = ({ userId, userName }: { userId: string; userName?: string }) => {
+const ComplianceSidebar = ({ userId, userName, onClose }: { userId: string; userName?: string, onClose?: () => void }) => {
   const [compliance, setCompliance] = useState<ComplianceData | null>(null);
   const [remainingTime, setRemainingTime] = useState<number>(0);
 
@@ -102,7 +102,7 @@ const ComplianceSidebar = ({ userId, userName }: { userId: string; userName?: st
 
   return (
     <aside className="acrylic no-select" style={{
-      width: '300px',
+      width: '330px',
       height: '100%',
       borderLeft: '1px solid var(--border-color)',
       padding: '24px',
@@ -111,9 +111,26 @@ const ComplianceSidebar = ({ userId, userName }: { userId: string; userName?: st
       gap: '24px',
       overflowY: 'auto'
     }}>
-      <header>
-        <h2 style={{ fontSize: '1.2rem', fontWeight: 600, marginBottom: '8px' }}>FlyDoc LATAM Explorer</h2>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Control de Publicaciones</p>
+      <header style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '10px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <h2 style={{ fontSize: '1.2rem', fontWeight: 600, marginBottom: '8px' }}>FlyDoc LATAM Explorer</h2>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Control de Publicaciones</p>
+        </div>
+        {window.innerWidth < 1200 && (
+          <button 
+            onClick={() => onClose?.()}
+            style={{ 
+              background: 'transparent', 
+              border: 'none', 
+              cursor: 'pointer',
+              padding: '4px',
+              borderRadius: '4px'
+            }}
+            className="win11-hover"
+          >
+            <Icon name="close" size={24} color="var(--text-secondary)" />
+          </button>
+        )}
       </header>
 
       <section style={{
@@ -155,7 +172,7 @@ const ComplianceSidebar = ({ userId, userName }: { userId: string; userName?: st
             )}
           </div>
         </div>
-        <p style={{ color: statusColor, fontSize: '0.85rem' }}>Tiempo Restante antes de mandar reporte a Jefatura</p>
+        <p style={{ color: statusColor, fontSize: '0.85rem' }}>Tiempo Restante antes de mandar reportar a Jefatura</p>
         <div style={{ fontSize: '2.5rem', fontWeight: 700, fontFamily: 'monospace', letterSpacing: '-3px' }}>
           {remainingTime > 0 ? (
             <span>{formatTime(remainingTime)}</span>

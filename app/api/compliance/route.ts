@@ -5,6 +5,10 @@ import { sheets, drive } from '../../../lib/google-drive';
 import { getAllDescendantFiles } from '../../../utils/drive-utils';
 import { ensureControlRows } from '../../../lib/control';
 
+// Simple in-memory cache for Drive files to avoid constant recursive fetching
+const fileCache: Record<string, { files: any[], timestamp: number }> = {};
+const CACHE_TTL = 60 * 1000; // 1 minute
+
 // compliance is derived from the CONTROL sheet entries for the given user
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -17,12 +21,20 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // 1. Read deadline from HOUR sheet
-    const hourResp = await sheets.spreadsheets.values.get({
-      spreadsheetId: GOOGLE_SHEET_ID,
-      range: 'HOUR!A2',
-    });
-    const hourValue = hourResp.data.values?.[0]?.[0];
+    // 1. Parallelize initial basic data fetching from Sheets
+    const [batchResp, dbResp] = await Promise.all([
+      sheets.spreadsheets.values.batchGet({
+        spreadsheetId: GOOGLE_SHEET_ID,
+        ranges: ['HOUR!A2', 'CONTROL!A:C'],
+      }),
+      sheets.spreadsheets.values.get({
+        spreadsheetId: GOOGLE_SHEET_ID_AUTH,
+        range: `${DB_SHEET_NAME}!A:D`,
+      }),
+    ]);
+
+    const hourValue = batchResp.data.valueRanges?.[0]?.values?.[0]?.[0];
+    const controlRowsFromBatch = batchResp.data.valueRanges?.[1]?.values || [];
     let baseDate = new Date();
     if (hourValue) {
       // Parse '20/03/2026 23:09:48'
@@ -40,11 +52,6 @@ export async function GET(request: NextRequest) {
     const timeLeftMs = deadline.getTime() - now.getTime();
     const timeLeftHours = Math.max(0, Math.ceil(timeLeftMs / (1000 * 60 * 60)));
 
-    // 2. Fetch all current files in the user's Drive hierarchy
-    const dbResp = await sheets.spreadsheets.values.get({
-      spreadsheetId: GOOGLE_SHEET_ID_AUTH,
-      range: `${DB_SHEET_NAME}!A:D`,
-    });
     const dbRows = dbResp.data.values || [];
     // Identify user in DB
     const userDbRow = dbRows.find(r => r[0] === userName);
@@ -56,8 +63,15 @@ export async function GET(request: NextRequest) {
       const rootFolderId = Object.entries(FLOTA_FOLDER_IDS).find(([k]) => k === flota)?.[1];
       
       if (rootFolderId) {
-        // Recursive fetch
-        currentDriveFiles = await getAllDescendantFiles(rootFolderId);
+        // Check cache first
+        const cached = fileCache[rootFolderId];
+        if (cached && (Date.now() - cached.timestamp < CACHE_TTL)) {
+          currentDriveFiles = cached.files;
+        } else {
+          // Recursive fetch
+          currentDriveFiles = await getAllDescendantFiles(rootFolderId);
+          fileCache[rootFolderId] = { files: currentDriveFiles, timestamp: Date.now() };
+        }
         
         // Auto-populate CONTROL sheet with all descendant files if they are not there
         if (userName && currentDriveFiles.length > 0) {
@@ -66,23 +80,19 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // 3. Read control rows after potentially adding new ones
-    const resp = await sheets.spreadsheets.values.get({
-      spreadsheetId: GOOGLE_SHEET_ID,
-      range: 'CONTROL!A:C',
-    });
-    const rows: any[] = resp.data.values || [];
+    // 3. Process control rows (we already fetched them in controlRowsFromBatch)
+    const rows: any[] = controlRowsFromBatch;
     const dataRows = rows.slice(1);
 
     // 4. Sync deletions
-    const driveFileNames = currentDriveFiles.map(f => f.name);
+    const driveFileNames = new Set(currentDriveFiles.map(f => f.name));
     let rowChanged = false;
-    const newSheetRows: any[][] = [rows[0]]; // Start with header
+    const newSheetRows: any[][] = [rows[0] || ['User', 'File', 'Downloaded']]; // Start with header
     
     dataRows.forEach((row) => {
       if (row[0] === userName) {
         // If the file is in our sheet but no longer in the recursive Drive list, skip it
-        if (currentDriveFiles.length > 0 && !driveFileNames.includes(row[1])) {
+        if (currentDriveFiles.length > 0 && !driveFileNames.has(row[1])) {
           rowChanged = true;
           return; 
         }

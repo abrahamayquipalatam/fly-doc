@@ -75,9 +75,9 @@ const TreeItem: React.FC<{
                     display: 'flex',
                     alignItems: 'center',
                     gap: '8px',
-                    padding: '12px 12px',
-                    paddingLeft: isSidebarCollapsed ? '12px' : `${12 + level * 16}px`,
-                    borderRadius: '6px',
+                    padding: isSidebarCollapsed ? '8px' : '12px 12px',
+                    paddingLeft: isSidebarCollapsed ? '0px' : `${12 + level * 16}px`,
+                    borderRadius: isSidebarCollapsed ? '2px' : '6px',
                     background: isSelected ? 'var(--selected-bg)' : 'transparent',
                     textAlign: 'left',
                     width: '100%',
@@ -98,7 +98,6 @@ const TreeItem: React.FC<{
                         }}
                     />
                 )}
-                {(!isFolder || isSidebarCollapsed) && <span style={{ width: isSidebarCollapsed ? '0' : '12px' }}></span>}
                 <Win11Icon type={item.mimeType} size={18} />
                 {!isSidebarCollapsed && (
                     <span className="tree-item-text" style={{
@@ -141,6 +140,12 @@ const TreeItem: React.FC<{
 };
 
 const NavigationSidebar: React.FC<NavigationSidebarProps> = ({ currentFolderId, rootFolders, onFolderSelect, onFileSelect, isCollapsed, onToggleCollapse }) => {
+    const handleLogout = () => {
+        localStorage.removeItem('skyVaultUserEmail');
+        localStorage.removeItem('skyVaultUserId');
+        window.location.reload();
+    };
+
     return (
         <aside className={`acrylic no-select transition-standard ${isCollapsed ? 'sidebar-collapsed' : ''}`} style={{
             width: isCollapsed ? '72px' : '260px',
@@ -156,7 +161,7 @@ const NavigationSidebar: React.FC<NavigationSidebarProps> = ({ currentFolderId, 
             <div className="sidebar-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: isCollapsed ? '8px 0 16px 0' : '8px 12px 16px 24px', flexWrap: 'nowrap' }}>
                 {!isCollapsed && (
                     <div className="logo-container">
-                        <Image src={Logo} alt="FlyDoc Logo" height={32} style={{ width: 'auto' }} />
+                        <Image src={Logo} alt="FlyDoc Logo" height={42} style={{ width: 'auto' }} />
                     </div>
                 )}
                 <button
@@ -168,7 +173,8 @@ const NavigationSidebar: React.FC<NavigationSidebarProps> = ({ currentFolderId, 
                         alignItems: 'center',
                         justifyContent: 'center',
                         marginLeft: isCollapsed ? 'auto' : '0',
-                        marginRight: isCollapsed ? 'auto' : '0'
+                        marginRight: isCollapsed ? 'auto' : '0',
+                        color: '#cacacaff'
                     }}
                     title={isCollapsed ? "Expandir menu" : "Contraer menu"}
                 >
@@ -202,17 +208,49 @@ const NavigationSidebar: React.FC<NavigationSidebarProps> = ({ currentFolderId, 
                 ))}
             </div>
 
-            {!isCollapsed && (
-                <footer style={{ marginTop: 'auto', padding: '16px 0 16px 24px', fontSize: '0.7rem', color: 'var(--text-secondary)', borderTop: '1px solid var(--border-color)' }}>
-                    <div style={{ fontWeight: 600 }}>FlyDoc LATAM Explorer</div>
-                    <div>v1.0.0</div>
-                </footer>
-            )}
-            {isCollapsed && (
-                <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'center', padding: '16px 0', borderTop: '1px solid var(--border-color)' }}>
-                    <Icon name="info" size={16} style={{ opacity: 0.5 }} />
+            {!isCollapsed ?
+                <div style={{ marginTop: 'auto', padding: '16px 20px' }}>
+                    <button
+                        onClick={handleLogout}
+                        className="win11-hover"
+                        style={{
+                            width: '100%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: isCollapsed ? 'center' : 'flex-start',
+                            gap: '12px',
+                            padding: '10px 20px',
+                            borderRadius: '6px',
+                            color: '#ff4d4d',
+                            border: '1px solid #ff4d4d',
+                            background: 'transparent',
+                            fontSize: '0.85rem',
+                            fontWeight: 600,
+                            transition: 'all 0.2s'
+                        }}
+                    >
+                        <Icon name="logout" size={20} />
+                        Cerrar Sesión
+                    </button>
+                </div> :
+                <div style={{ marginTop: 'auto', padding: '16px 20px' }}>
+                    <button
+                        onClick={handleLogout}
+                        className="win11-hover"
+                        style={{
+                            padding: '1px 2px',
+                            color: '#ff4d4d',
+                            border: '1px solid #ff4d4d',
+                            background: 'transparent',
+                            fontSize: '0.85rem',
+                            fontWeight: 600,
+                            transition: 'all 0.2s'
+                        }}
+                    >
+                        <Icon name="logout" size={20} />
+                    </button>
                 </div>
-            )}
+            }
         </aside>
     );
 };

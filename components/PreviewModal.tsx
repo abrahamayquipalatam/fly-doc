@@ -14,11 +14,12 @@ interface FileItem {
 interface PreviewModalProps {
   file: FileItem | null;
   onClose: () => void;
+  onDownload: () => void;
   userId: string;
   userName?: string;
 }
 
-const PreviewModal = ({ file, onClose, userId, userName }: PreviewModalProps) => {
+const PreviewModal = ({ file, onClose, onDownload, userId, userName }: PreviewModalProps) => {
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -50,10 +51,7 @@ const PreviewModal = ({ file, onClose, userId, userName }: PreviewModalProps) =>
   };
 
   const handleDownload = () => {
-    const downloadUrl = `/api/files/${file.id}/download?userId=${userId}${userName ? `&userName=${encodeURIComponent(userName)}` : ''}`;
-    window.location.href = downloadUrl;
-    // Dispatch event to update sidebar immediately
-    window.dispatchEvent(new Event('file-downloaded'));
+    onDownload();
   };
 
   return (
@@ -61,7 +59,7 @@ const PreviewModal = ({ file, onClose, userId, userName }: PreviewModalProps) =>
       position: 'fixed',
       inset: 0,
       backgroundColor: 'rgba(0,0,0,0.6)',
-      zIndex: 1000,
+      zIndex: 2000,
       backdropFilter: 'blur(8px)',
     }}
       onClick={(e) => {
@@ -178,6 +176,10 @@ const PreviewModal = ({ file, onClose, userId, userName }: PreviewModalProps) =>
             </button>
           </div>
         </div>
+
+
+
+
         {/* Preview Content */}
         <div style={{ flex: 1, backgroundColor: 'var(--explorer-bg)', display: 'flex', justifyContent: 'center', alignItems: 'center', overflow: 'hidden', position: 'relative' }}>
           {isImage ? (
