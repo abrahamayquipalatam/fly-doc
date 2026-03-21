@@ -1,6 +1,8 @@
 'use client'
 
 import { useState } from 'react';
+import Image from 'next/image';
+import logo from '../assets/flydoc-logo-negro.png';
 
 interface LoginProps {
   onLoginSuccess: (userData: { name: string; email: string; flota: string; folderId: string }) => void;
@@ -42,6 +44,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
     <div style={{
       height: '100vh',
       width: '100vw',
+      padding: '40px',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -61,7 +64,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
         alignItems: 'center',
       }}>
         <div style={{ marginBottom: '20px', textAlign: 'center' }}>
-          <h1 style={{ fontSize: '2.5rem', fontWeight: '800', margin: '0 0 8px 0', letterSpacing: '-0.025em' }}>FlyDoc</h1>
+          <Image src={logo} alt="FlyDoc Logo" height={56} />
           <p style={{ fontSize: '1rem', opacity: 0.8 }}>Ingresa tus credenciales para continuar</p>
         </div>
 

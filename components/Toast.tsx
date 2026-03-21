@@ -24,7 +24,7 @@ const Toast = ({ isVisible, message }: ToastProps) => {
             right: 0,
             margin: '0 auto',
             width: 'fit-content', // 👈 clave
-            zIndex: 9999,
+            zIndex: 999999,
             backgroundColor: 'rgba(255, 255, 255, 0.95)',
             backdropFilter: 'blur(10px)',
             border: '1px solid var(--border-color)',

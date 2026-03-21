@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Win11Icon from './Win11Icon';
 import { Icon } from './Icon';
 
@@ -17,9 +17,10 @@ interface PreviewModalProps {
   onDownload: () => void;
   userId: string;
   userName?: string;
+  onLoadComplete?: () => void;
 }
 
-const PreviewModal = ({ file, onClose, onDownload, userId, userName }: PreviewModalProps) => {
+const PreviewModal = ({ file, onClose, onDownload, userId, userName, onLoadComplete }: PreviewModalProps) => {
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -54,12 +55,35 @@ const PreviewModal = ({ file, onClose, onDownload, userId, userName }: PreviewMo
     onDownload();
   };
 
+  const [screenWidth, setScreenWidth] = useState(
+    typeof window !== 'undefined' ? window.innerWidth : 1024
+  );
+
+  useEffect(() => {
+    const handleResize = () => setScreenWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const truncateFileName = (name: string) => {
+    let maxLength = 50; // desktop
+
+    if (screenWidth <= 640) {
+      maxLength = 30; // mobile
+    } else if (screenWidth <= 1024) {
+      maxLength = 50; // tablet
+    }
+
+    if (name.length <= maxLength) return name;
+    return name.slice(0, maxLength) + '...';
+  };
+
   return (
     <div className="flex-center" style={{
       position: 'fixed',
       inset: 0,
       backgroundColor: 'rgba(0,0,0,0.6)',
-      zIndex: 2000,
+      zIndex: 99999,
       backdropFilter: 'blur(8px)',
     }}
       onClick={(e) => {
@@ -86,81 +110,96 @@ const PreviewModal = ({ file, onClose, onDownload, userId, userName }: PreviewMo
                 to { transform: scale(1); opacity: 1; }
             }
         `}} />
-
         {/* Title Bar style Win11 */}
         <div style={{
-          height: '60px',
+          minHeight: '60px',
           background: 'var(--bg-color)',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          padding: '0 12px',
+          padding: '8px 12px',
           borderBottom: '1px solid var(--border-color)',
-          userSelect: 'none'
+          userSelect: 'none',
+          flexWrap: 'wrap', // 👈 clave responsive
+          gap: '8px'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginLeft: '12px' }}>
-            <Win11Icon type={file.mimeType} size={24} />
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <span style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-main)' }}>{file.name}</span>
-              <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Previsualización (Solo primeras 3 páginas)</span>
-            </div>
-          </div>
+
+          {/* LEFT */}
           <div style={{
             display: 'flex',
-            flexDirection: 'row',
             alignItems: 'center',
-            gap: '12px',
-            marginRight: '8px'
+            gap: '10px',
+            flex: '1 1 auto',
+            minWidth: 0 // 👈 evita overflow
           }}>
-            <a
-              href={file.webViewLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                height: '36px',
-                padding: '0px 16px',
-                background: 'var(--explorer-bg)',
+            <Win11Icon type={file.mimeType} size={22} />
+
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden'
+            }}>
+              <span style={{
+                fontSize: '0.85rem',
+                fontWeight: 600,
                 color: 'var(--text-main)',
-                border: '1px solid var(--border-color)',
-                borderRadius: '6px',
-                fontSize: '0.85rem',
-                fontWeight: 600,
-                textDecoration: 'none',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px'
-              }}
-              className="win11-hover"
-            >
-              Abrir en Drive
-              <Icon name="external-link" size={14} />
-            </a>
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis'
+              }}>
+                {truncateFileName(file.name)}
+              </span>
+
+              <span style={{
+                fontSize: '0.65rem',
+                color: 'var(--text-secondary)',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis'
+              }}>
+                Previsualización (Solo primeras 3 páginas)
+              </span>
+            </div>
+          </div>
+
+          {/* RIGHT */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            flexShrink: 0
+          }}>
+            {/* Download */}
             <button
-              onClick={handleDownload}
+              onClick={onDownload}
+              className="win11-hover"
               style={{
                 height: '36px',
-                padding: '0px 16px',
-                background: 'var(--accent-color)',
-                color: 'white',
-                borderRadius: '6px',
-                fontSize: '0.85rem',
-                fontWeight: 600,
                 display: 'flex',
-                alignItems: 'center',
                 gap: '8px',
+                justifyContent: 'center',
+                alignItems: 'center',
+                color: 'var(--accent-color)',
+                borderRadius: '4px',
+                border: '1px solid var(--border-color)',
+                background: 'transparent',
+                padding: '0 12px',
+                fontSize: '0.8rem',
+                fontWeight: 600,
                 cursor: 'pointer'
               }}
-              className="win11-hover"
             >
-              <Icon name="download" size={16} />
-              Descargar
+              <Icon name="download" size={18} />
+              <span className="hide-mobile">DESCARGAR Y REGISTRAR</span>
             </button>
+
+            {/* Close */}
             <button
               onClick={onClose}
               className="win11-hover"
               style={{
-                width: '40px',
-                height: '40px',
+                width: '36px',
+                height: '36px',
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
@@ -169,29 +208,44 @@ const PreviewModal = ({ file, onClose, onDownload, userId, userName }: PreviewMo
                 border: 'none',
                 background: 'transparent'
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#E81123', e.currentTarget.style.color = 'white')}
-              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent', e.currentTarget.style.color = 'var(--text-secondary)')}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#E81123';
+                e.currentTarget.style.color = 'white';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent';
+                e.currentTarget.style.color = 'var(--text-secondary)';
+              }}
             >
-              <Icon name="x" size={24} />
+              <Icon name="x" size={20} />
             </button>
           </div>
+
+          {/* 🔥 MEDIA QUERY INLINE */}
+          <style dangerouslySetInnerHTML={{
+            __html: `
+                @media (max-width: 640px) {
+                  .hide-mobile {
+                    display: none;
+                  }
+                }
+              `
+          }} />
         </div>
-
-
-
-
         {/* Preview Content */}
         <div style={{ flex: 1, backgroundColor: 'var(--explorer-bg)', display: 'flex', justifyContent: 'center', alignItems: 'center', overflow: 'hidden', position: 'relative' }}>
           {isImage ? (
             <img
               src={getPreviewUrl(file)}
               alt={file.name}
+              onLoad={onLoadComplete}
               style={{ maxWidth: '90%', maxHeight: '90%', objectFit: 'contain', background: 'white', padding: '10px', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }}
             />
           ) : isVideo ? (
             <video
               controls
               autoPlay
+              onLoadedData={onLoadComplete}
               style={{ maxWidth: '100%', maxHeight: '100%' }}
             >
               <source src={getPreviewUrl(file)} type={file.mimeType} />
@@ -199,7 +253,7 @@ const PreviewModal = ({ file, onClose, onDownload, userId, userName }: PreviewMo
             </video>
           ) : isAudio ? (
             <div style={{ padding: '40px', background: 'white', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
-              <audio controls autoPlay>
+              <audio controls autoPlay onCanPlayThrough={onLoadComplete}>
                 <source src={getPreviewUrl(file)} type={file.mimeType} />
                 Tu navegador no soporta la reproducción de audio.
               </audio>
@@ -207,6 +261,7 @@ const PreviewModal = ({ file, onClose, onDownload, userId, userName }: PreviewMo
           ) : (
             <iframe
               src={getPreviewUrl(file)}
+              onLoad={onLoadComplete}
               width="100%"
               height="100%"
               frameBorder="0"

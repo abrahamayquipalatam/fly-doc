@@ -15,7 +15,7 @@ interface FileItem {
 interface NavigationSidebarProps {
     currentFolderId: string;
     rootFolders: { id: string, name: string }[];
-    onFolderSelect: (id: string, name: string) => void;
+    onFolderSelect: (id: string, name: string, path?: { id: string, name: string }[]) => void;
     onFileSelect?: (file: FileItem) => void;
     isCollapsed: boolean;
     onToggleCollapse: () => void;
@@ -25,10 +25,11 @@ const TreeItem: React.FC<{
     item: FileItem;
     level: number;
     currentFolderId: string;
-    onFolderSelect: (id: string, name: string) => void;
+    onFolderSelect: (id: string, name: string, path?: { id: string, name: string }[]) => void;
     onFileSelect?: (file: FileItem) => void;
     isSidebarCollapsed: boolean;
-}> = ({ item, level, currentFolderId, onFolderSelect, onFileSelect, isSidebarCollapsed }) => {
+    path: { id: string, name: string }[];
+}> = ({ item, level, currentFolderId, onFolderSelect, onFileSelect, isSidebarCollapsed, path }) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const [children, setChildren] = useState<FileItem[]>([]);
     const [loading, setLoading] = useState(false);
@@ -58,7 +59,7 @@ const TreeItem: React.FC<{
 
     const handleClick = () => {
         if (isFolder) {
-            onFolderSelect(item.id, item.name);
+            onFolderSelect(item.id, item.name, path);
             if (!isExpanded) toggleExpand({ stopPropagation: () => { } } as any);
         } else if (onFileSelect) {
             onFileSelect(item);
@@ -125,6 +126,7 @@ const TreeItem: React.FC<{
                                 onFolderSelect={onFolderSelect}
                                 onFileSelect={onFileSelect}
                                 isSidebarCollapsed={isSidebarCollapsed}
+                                path={[...path, { id: child.id, name: child.name }]}
                             />
                         ))
                     )}
@@ -140,6 +142,17 @@ const TreeItem: React.FC<{
 };
 
 const NavigationSidebar: React.FC<NavigationSidebarProps> = ({ currentFolderId, rootFolders, onFolderSelect, onFileSelect, isCollapsed, onToggleCollapse }) => {
+    const [isMobile, setIsMobile] = useState(false);
+
+    useEffect(() => {
+        const handleResize = () => {
+            setIsMobile(window.innerWidth < 640);
+        };
+        handleResize();
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
     const handleLogout = () => {
         localStorage.removeItem('skyVaultUserEmail');
         localStorage.removeItem('skyVaultUserId');
@@ -164,25 +177,27 @@ const NavigationSidebar: React.FC<NavigationSidebarProps> = ({ currentFolderId, 
                         <Image src={Logo} alt="FlyDoc Logo" height={42} style={{ width: 'auto' }} />
                     </div>
                 )}
-                <button
-                    onClick={onToggleCollapse}
-                    className="win11-hover"
-                    style={{
-                        padding: '8px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        marginLeft: isCollapsed ? 'auto' : '0',
-                        marginRight: isCollapsed ? 'auto' : '0',
-                        color: '#cacacaff'
-                    }}
-                    title={isCollapsed ? "Expandir menu" : "Contraer menu"}
-                >
-                    <Icon name={isCollapsed ? "menu" : "chevron-left"} size={20} />
-                </button>
+                {!isMobile && (
+                    <button
+                        onClick={onToggleCollapse}
+                        className="win11-hover"
+                        style={{
+                            padding: '8px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            marginLeft: isCollapsed ? 'auto' : '0',
+                            marginRight: isCollapsed ? 'auto' : '0',
+                            color: '#cacacaff'
+                        }}
+                        title={isCollapsed ? "Expandir menu" : "Contraer menu"}
+                    >
+                        <Icon name={isCollapsed ? "menu" : "chevron-left"} size={20} />
+                    </button>
+                )}
             </div>
 
-            {!isCollapsed && (
+            {!isCollapsed && !isMobile && (
                 <div className="sidebar-label" style={{
                     color: 'var(--text-secondary)',
                     fontSize: '11px',
@@ -194,21 +209,24 @@ const NavigationSidebar: React.FC<NavigationSidebarProps> = ({ currentFolderId, 
                 </div>
             )}
 
-            <div style={{ display: 'flex', flexDirection: 'column', padding: isCollapsed ? '0 8px' : '0 16px 8px 24px' }}>
-                {rootFolders.map((folder) => (
-                    <TreeItem
-                        key={folder.id}
-                        item={{ id: folder.id, name: folder.name, mimeType: 'application/vnd.google-apps.folder' }}
-                        level={0}
-                        currentFolderId={currentFolderId}
-                        onFolderSelect={onFolderSelect}
-                        onFileSelect={onFileSelect}
-                        isSidebarCollapsed={isCollapsed}
-                    />
-                ))}
-            </div>
+            {!isMobile && (
+                <div style={{ display: 'flex', flexDirection: 'column', padding: isCollapsed ? '0 8px' : '0 16px 8px 24px' }}>
+                    {rootFolders.map((folder) => (
+                        <TreeItem
+                            key={folder.id}
+                            item={{ id: folder.id, name: folder.name, mimeType: 'application/vnd.google-apps.folder' }}
+                            level={0}
+                            currentFolderId={currentFolderId}
+                            onFolderSelect={onFolderSelect}
+                            onFileSelect={onFileSelect}
+                            isSidebarCollapsed={isCollapsed}
+                            path={[{ id: folder.id, name: folder.name }]}
+                        />
+                    ))}
+                </div>
+            )}
 
-            {!isCollapsed ?
+            {(!isCollapsed && !isMobile) ?
                 <div style={{ marginTop: 'auto', padding: '16px 20px' }}>
                     <button
                         onClick={handleLogout}

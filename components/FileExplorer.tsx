@@ -6,7 +6,7 @@ import ComplianceSidebar from '../components/ComplianceSidebar';
 import FileList from '../components/FileList';
 import Breadcrumb from '../components/Breadcrumb';
 import PreviewModal from '../components/PreviewModal';
-import Toast from '../components/Toast';
+import Toast from './Toast';
 import { FLOTA_FOLDER_IDS } from '@/config/constants';
 import { Icon } from './Icon';
 
@@ -31,7 +31,7 @@ const FileExplorer = ({ userId, userEmail }: { userId: string, userEmail: string
   const [userName, setUserName] = useState<string>('');
   const [flotaFolderId, setFlotaFolderId] = useState<string>('');
   const [flota, setFlota] = useState<string>('');
-  const [isFetchingFile, setIsFetchingFile] = useState(false);
+  const [showToast, setShowToast] = useState(false);
 
   // fetch user info (name, flota, folderId) once at startup
   useEffect(() => {
@@ -105,25 +105,21 @@ const FileExplorer = ({ userId, userEmail }: { userId: string, userEmail: string
     setCurrentFolder(newBreadcrumb[newBreadcrumb.length - 1].id);
   };
 
-  const handleFileAction = (file: FileItem, action: 'preview' | 'download') => {
-    setIsFetchingFile(true);
-    
-    if (action === 'preview') {
-      setPreviewFile(file);
-      // Ocultar toast después de un momento corto para dar tiempo a que se abra el modal
-      setTimeout(() => setIsFetchingFile(false), 800);
-    } else {
-      const downloadUrl = `/api/files/${file.id}/download?userId=${userId}${userName ? `&userName=${encodeURIComponent(userName)}` : ''}`;
-      window.location.href = downloadUrl;
-      window.dispatchEvent(new Event('file-downloaded'));
-      // Ocultar toast después de un momento
-      setTimeout(() => setIsFetchingFile(false), 2000);
-    }
+  const handleDownload = (file: FileItem) => {
+    // Initiates download via API route
+    setShowToast(true);
+    window.location.href = `/api/files/${file.id}/download?userId=${userId}${userName ? `&userName=${encodeURIComponent(userName)}` : ''}`;
+    // Hide toast after a reasonable time for download to start
+    setTimeout(() => setShowToast(false), 3000);
   };
 
-  const handleSidebarFolderSelect = (id: string, name: string) => {
+  const handleSidebarFolderSelect = (id: string, name: string, path?: { id: string; name: string }[]) => {
     setCurrentFolder(id);
-    setBreadcrumb([{ id, name }]);
+    if (path) {
+      setBreadcrumb(path);
+    } else {
+      setBreadcrumb([{ id, name }]);
+    }
   };
 
   const rootFolderConfigs = flotaFolderId
@@ -153,7 +149,7 @@ const FileExplorer = ({ userId, userEmail }: { userId: string, userEmail: string
         currentFolderId={currentFolder}
         rootFolders={rootFolderConfigs}
         onFolderSelect={handleSidebarFolderSelect}
-        onFileSelect={(file) => setPreviewFile(file as any)}
+        onFileSelect={(file: any) => { setShowToast(true); setPreviewFile(file as any); }}
         isCollapsed={sidebarCollapsed}
         onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
       />
@@ -166,7 +162,7 @@ const FileExplorer = ({ userId, userEmail }: { userId: string, userEmail: string
         position: 'relative',
         overflow: 'hidden',
         padding: '20px 0px',
-        zIndex: 1
+
       }}>
         {/* Barra de herramientas superior estilo Win11 */}
         <header style={{
@@ -216,13 +212,13 @@ const FileExplorer = ({ userId, userEmail }: { userId: string, userEmail: string
               className="win11-hover"
               style={{
                 display: 'none', // Shown only on tablet via media query (handled by class)
-                padding: '6px',
+                padding: '8px',
                 borderRadius: '4px',
                 border: '1px solid var(--border-color)',
               }}
               id="compliance-toggle-btn"
             >
-              <Icon name="analytics" size={20} color='#bdbdbdff' />
+              <Icon name="analytics" size={20} color={'#868686ff'} />
             </button>
             <style dangerouslySetInnerHTML={{
               __html: `
@@ -284,67 +280,69 @@ const FileExplorer = ({ userId, userEmail }: { userId: string, userEmail: string
           <FileList
             files={files.filter(f => f.name.toLowerCase().includes(searchTerm.toLowerCase()))}
             onFolderClick={handleFolderClick}
-            onFileClick={(file: FileItem) => handleFileAction(file, 'preview')}
-            onDownload={(file: FileItem) => handleFileAction(file, 'download')}
+            onFileClick={(file: FileItem) => { setShowToast(true); setPreviewFile(file); }}
+            onDownload={handleDownload}
             userId={userId}
             userName={userName}
             viewMode={viewMode}
           />
         )}
+
+        {previewFile && (
+          <PreviewModal
+            file={previewFile}
+            onClose={() => { setPreviewFile(null); setShowToast(false); }}
+            onDownload={() => handleDownload(previewFile)}
+            userId={userId}
+            userName={userName}
+            onLoadComplete={() => setShowToast(false)}
+          />
+        )}
+
+        <Toast isVisible={showToast} message="Obteniendo archivo..." />
       </main>
 
-      {/* Compliance Sidebar Overlay - Only shown on mobile/tablet when sidebar is visible */}
-      <div
-        onClick={() => setComplianceVisible(false)}
-        className={`compliance-overlay ${complianceVisible ? 'visible' : ''}`}
-        style={{
-          position: 'fixed',
-          inset: 0,
-          background: 'rgba(0,0,0,0.4)',
-          backdropFilter: 'blur(4px)',
-          zIndex: 100,
-          display: 'none',
-          cursor: 'pointer'
-        }}
-      />
+      {/* Compliance Sidebar Backdrop - Only mobile/tablet */}
+      {complianceVisible && (
+        <div
+          onClick={() => setComplianceVisible(false)}
+          className="compliance-backdrop"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(0,0,0,0.6)',
+            backdropFilter: 'blur(8px)',
+            zIndex: 998,
+            display: 'none' // Hidden by default, shown via media query
+          }}
+        />
+      )}
 
       {/* Compliance Sidebar - On desktop it's fixed, on tablet it can be toggled */}
       <aside className={`compliance-container ${complianceVisible ? 'visible' : ''}`} style={{
         height: '100%',
-        zIndex: 101,
+        zIndex: 999,
         transition: 'transform 0.3s ease-in-out',
         background: 'var(--bg-color)',
       }}>
         <ComplianceSidebar userId={userId} userName={userName} onClose={() => setComplianceVisible(false)} />
       </aside>
 
-      {previewFile && (
-        <PreviewModal 
-          file={previewFile} 
-          onClose={() => setPreviewFile(null)} 
-          userId={userId} 
-          userName={userName} 
-          onDownload={() => handleFileAction(previewFile as any, 'download')}
-        />
-      )}
-
-      <Toast isVisible={isFetchingFile} message="Obteniendo archivo..." />
-
       <style dangerouslySetInnerHTML={{
         __html: `
         @media (max-width: 1024px) {
+          .compliance-backdrop {
+            display: block !important;
+          }
           .compliance-container {
-            position: absolute;
+            position: fixed;
             right: 0;
             top: 0;
             transform: translateX(100%);
-            box-shadow: -10px 0 30px rgba(0,0,0,0.1);
+            box-shadow: -10px 0 30px rgba(0,0,0,0.3);
           }
           .compliance-container.visible {
             transform: translateX(0);
-          }
-          .compliance-overlay.visible {
-            display: block !important;
           }
         }
         @media (min-width: 1025px) {
@@ -352,14 +350,8 @@ const FileExplorer = ({ userId, userEmail }: { userId: string, userEmail: string
             display: block !important;
             transform: none !important;
             position: relative !important;
+            z-index: 10 !important;
           }
-          .compliance-overlay {
-            display: none !important;
-          }
-        }
-        @keyframes fade-in {
-          from { opacity: 0; }
-          to { opacity: 1; }
         }
       `}} />
     </div>

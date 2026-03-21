@@ -116,19 +116,19 @@ const ComplianceSidebar = ({ userId, userName, onClose }: { userId: string; user
           <h2 style={{ fontSize: '1.2rem', fontWeight: 600, marginBottom: '8px' }}>FlyDoc LATAM Explorer</h2>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Control de Publicaciones</p>
         </div>
-        {window.innerWidth < 1200 && (
-          <button 
-            onClick={() => onClose?.()}
-            style={{ 
-              background: 'transparent', 
-              border: 'none', 
+        {onClose && (
+          <button
+            onClick={() => onClose()}
+            style={{
+              background: 'transparent',
+              border: 'none',
               cursor: 'pointer',
               padding: '4px',
               borderRadius: '4px'
             }}
             className="win11-hover"
           >
-            <Icon name="close" size={24} color="var(--text-secondary)" />
+            <Icon name="x" size={24} color="var(--text-secondary)" />
           </button>
         )}
       </header>

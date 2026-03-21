@@ -100,18 +100,20 @@ const FileList = ({ files, onFolderClick, onFileClick, onDownload, userId, userN
       <table className="explorer-table no-select" style={{ width: '100%', tableLayout: 'fixed' }}>
         <thead>
           <tr>
-            <th style={{ width: '65%' }}>Nombre</th>
-            <th className="hide-on-tablet" style={{ width: '25%' }}>Fecha de modificación</th>
-            <th className="hide-on-tablet" style={{ width: '15%' }}>Tamaño</th>
-            <th className="actions-column" style={{ width: '160px' }}>Acciones</th>
+            <th className="col-name">Nombre</th>
+            <th className="col-date hide-on-tablet">Fecha de modificación</th>
+            <th className="col-size hide-on-tablet">Tamaño</th>
+            <th className="col-actions">Acciones</th>
           </tr>
         </thead>
         <tbody>
           {sortedFiles.map(file => (
             <tr key={file.id} className="transition-standard pointer">
-              <td onClick={() => isFolder(file) ? onFolderClick(file) : onFileClick(file)}>
+              <td onClick={() => isFolder(file) ? onFolderClick(file) : onFileClick(file)} className='col-name'>
                 <div className="flex items-center" style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
-                  <Win11Icon type={file.mimeType} size={28} />
+                  <div style={{ minWidth: '28px' }}>
+                    <Win11Icon type={file.mimeType} size={28} />
+                  </div>
                   <span style={{
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
@@ -121,13 +123,13 @@ const FileList = ({ files, onFolderClick, onFileClick, onDownload, userId, userN
                   }} title={file.name}>{file.name}</span>
                 </div>
               </td>
-              <td className="hide-on-tablet" style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+              <td className="hide-on-tablet col-date" style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
                 {formatDate(file.modifiedTime)}
               </td>
-              <td className="hide-on-tablet" style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+              <td className="hide-on-tablet col-size" style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
                 {isFolder(file) ? '' : formatSize(file.size)}
               </td>
-              <td className="actions-cell">
+              <td className="actions-cell col-actions">
                 <div className="flex items-center" style={{ display: 'flex', gap: '6px', flexWrap: 'nowrap', justifyContent: 'flex-start' }}>
                   {!isFolder(file) && (
                     <>
@@ -198,16 +200,123 @@ const FileList = ({ files, onFolderClick, onFileClick, onDownload, userId, userN
           )}
         </tbody>
       </table>
-      <style dangerouslySetInnerHTML={{
-        __html: `
-        @media (max-width: 640px) {
-          .actions-column { width: 80px !important; }
-          .btn-text { display: none; }
-          .action-btn { padding: 8px !important; }
-          .explorer-table td { padding: 8px 10px !important; }
-          .explorer-table th { padding: 10px 10px !important; }
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
+        /* =========================
+           MOBILE (0px - 599px)
+        ========================= */
+                
+        /* Solo 2 columnas */
+        .col-name { width: 70%; }
+        .col-actions { width: 30%; }
+                
+        .col-date,
+        .col-size {
+          display: none;
         }
-      `}} />
+                
+        .btn-text {
+          display: none;
+        }
+                
+        .action-btn {
+          padding: 8px !important;
+        }
+                
+        /* =========================
+           TABLET (600px - 999px)
+        ========================= */
+        @media (min-width: 600px) {
+                
+          .col-name { width: 55%; }
+          .col-actions { width: 30%; }
+                
+          .col-date,
+          .col-size {
+            display: none;
+          }
+
+          .btn-text {
+            display: inline;
+          }
+        }
+                
+        /* =========================
+           LAPTOP (1000px - 1499px)
+        ========================= */
+        @media (min-width: 1000px) {
+                
+          /* Mostrar fecha */
+          .col-date {
+            display: table-cell;
+          }
+                
+          .col-size {
+            display: none;
+          }
+                
+          /* 100% total */
+          .col-name { width: 35%; }
+          .col-date { width: 20%; }
+          .col-actions { width: 25%; }
+                
+          .btn-text {
+            display: inline;
+          }
+        }
+                
+        /* =========================
+           DESKTOP (≥1500px)
+        ========================= */
+        @media (min-width: 1500px) {
+                
+          /* Mostrar todo */
+          .col-size {
+            display: table-cell;
+          }
+                
+          /* 100% total */
+          .col-name { width: 45%; }
+          .col-date { width: 20%; }
+          .col-size { width: 15%; }
+          .col-actions { width: 20%; }
+        }
+                
+        /* =========================
+           MEJORAS GENERALES
+        ========================= */
+                
+        .explorer-table {
+          width: 100%;
+          table-layout: fixed;
+        }
+                
+        /* Evita overflow */
+        .explorer-table td,
+        .explorer-table th {
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+                
+        /* Nombre truncado */
+        .col-name span {
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+                
+        /* Acciones limpias */
+        .actions-cell {
+          overflow: visible;
+        }
+                
+        .action-btn {
+          flex-shrink: 0;
+        }
+        `}}
+      />
     </div>
   );
 };

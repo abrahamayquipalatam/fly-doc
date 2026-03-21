@@ -1,5 +1,4 @@
 import React from 'react';
-import Win11Icon from './Win11Icon';
 import { Icon } from './Icon';
 
 interface BreadcrumbItem {
@@ -22,25 +21,28 @@ const Breadcrumb = ({ breadcrumb, onClick }: BreadcrumbProps) => (
     border: '1px solid var(--border-color)',
     borderRadius: '4px',
     height: '34px',
-    overflowX: 'auto',
+    overflowX: 'hidden',
     whiteSpace: 'nowrap',
     fontSize: '0.85rem'
   }}>
-    <Win11Icon type="application/vnd.google-apps.folder" size={16} />
     {breadcrumb.map((item, index) => (
       <React.Fragment key={item.id}>
         <button
           onClick={() => onClick(index)}
-          className="win11-hover"
           style={{
             padding: '2px 8px',
             borderRadius: '2px',
             display: 'flex',
             alignItems: 'center',
-            fontWeight: index === breadcrumb.length - 1 ? 600 : 400
+            fontWeight: index === breadcrumb.length - 1 ? 600 : 400,
+            gap: '4px'
           }}
         >
-          {item.name}
+          {index === 0 ? (
+            <Icon name="home" size={16} color="#555555ff" />
+          ) : (
+            item.name
+          )}
         </button>
         {index < breadcrumb.length - 1 && (
           <Icon name="chevron-right" size={10} className="text-neutral-400" />
