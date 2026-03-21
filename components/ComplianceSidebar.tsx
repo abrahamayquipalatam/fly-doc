@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Icon } from './Icon';
+import Win11Icon from './Win11Icon';
 
 interface RequiredFile {
   // the control sheet only tracks file name, no consistent id
   name: string;
   downloaded: boolean;
+  mimeType: string;
 }
 
 interface ComplianceData {
@@ -46,7 +48,7 @@ const ComplianceSidebar = ({ userId, userName }: { userId: string; userName?: st
     };
 
     fetchCompliance();
-    const interval = setInterval(fetchCompliance, 60000); // UI sync with server every 1 min
+    const interval = setInterval(fetchCompliance, 10000); // UI sync with server every 10 seconds for faster feedback
     const listener = () => fetchCompliance();
     window.addEventListener('file-downloaded', listener);
     return () => {
@@ -173,7 +175,7 @@ const ComplianceSidebar = ({ userId, userName }: { userId: string; userName?: st
             <div key={file.name || idx} style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '12px',
+              gap: '3px',
               padding: '10px 12px',
               borderRadius: '6px',
               background: 'var(--explorer-bg)',
@@ -195,6 +197,7 @@ const ComplianceSidebar = ({ userId, userName }: { userId: string; userName?: st
               }}>
                 {file.downloaded && <span>✓</span>}
               </div>
+              <Win11Icon type={file.mimeType} size={22} />
               <span style={{
                 flex: 1,
                 textDecoration: file.downloaded ? 'line-through' : 'none',

@@ -1,7 +1,9 @@
-import { DEADLINE_HOURS, GOOGLE_SHEET_ID } from '@/config/constants';
+import { GOOGLE_SHEET_ID, EMAIL, FLOTA_FOLDER_IDS } from '@/config/constants';
 import { NextRequest, NextResponse } from 'next/server';
 import { downloads } from '../../../lib/db';
-import { sheets } from '../../../lib/google-drive';
+import { sheets, drive } from '../../../lib/google-drive';
+import { getAllDescendantFiles } from '../../../utils/drive-utils';
+import { ensureControlRows } from '../../../lib/control';
 
 // compliance is derived from the CONTROL sheet entries for the given user
 export async function GET(request: NextRequest) {
@@ -15,56 +17,117 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // read control rows, filter by whichever identifier we have (preference for name)
+    // 1. Read deadline from HOUR sheet
+    const hourResp = await sheets.spreadsheets.values.get({
+      spreadsheetId: GOOGLE_SHEET_ID,
+      range: 'HOUR!A2',
+    });
+    const hourValue = hourResp.data.values?.[0]?.[0];
+    let baseDate = new Date();
+    if (hourValue) {
+      // Parse '20/03/2026 23:09:48'
+      const [datePart, timePart] = hourValue.split(' ');
+      if (datePart && timePart) {
+        const [day, month, year] = datePart.split('/').map(Number);
+        const [hours, minutes, seconds] = timePart.split(':').map(Number);
+        baseDate = new Date(year, month - 1, day, hours, minutes, seconds);
+      }
+    }
+    
+    const DEADLINE_HOURS_OVERRIDE = 72;
+    const deadline = new Date(baseDate.getTime() + DEADLINE_HOURS_OVERRIDE * 60 * 60 * 1000);
+    const now = new Date();
+    const timeLeftMs = deadline.getTime() - now.getTime();
+    const timeLeftHours = Math.max(0, Math.ceil(timeLeftMs / (1000 * 60 * 60)));
+
+    // 2. Fetch all current files in the user's Drive hierarchy
+    const dbResp = await sheets.spreadsheets.values.get({
+      spreadsheetId: GOOGLE_SHEET_ID,
+      range: 'DB!A:C',
+    });
+    const dbRows = dbResp.data.values || [];
+    // Identify user in DB
+    const userDbRow = dbRows.find(r => r[0] === userName || r[1] === EMAIL);
+    let currentDriveFiles: {id: string, name: string, mimeType: string}[] = [];
+
+    if (userDbRow) {
+      const flota = userDbRow[2];
+      const rootFolderId = Object.entries(FLOTA_FOLDER_IDS).find(([k]) => k === flota)?.[1];
+      
+      if (rootFolderId) {
+        // Recursive fetch
+        currentDriveFiles = await getAllDescendantFiles(rootFolderId);
+        
+        // Auto-populate CONTROL sheet with all descendant files if they are not there
+        if (userName && currentDriveFiles.length > 0) {
+           await ensureControlRows(userName, currentDriveFiles);
+        }
+      }
+    }
+
+    // 3. Read control rows after potentially adding new ones
     const resp = await sheets.spreadsheets.values.get({
       spreadsheetId: GOOGLE_SHEET_ID,
       range: 'CONTROL!A:C',
     });
     const rows: any[] = resp.data.values || [];
+    const dataRows = rows.slice(1);
 
-    const userRows = rows
-      .slice(1) // ignore header
-      .filter(r => {
-        if (userName) return r[0] === userName;
-        return r[0] === userId;
+    // 4. Sync deletions
+    const driveFileNames = currentDriveFiles.map(f => f.name);
+    let rowChanged = false;
+    const newSheetRows: any[][] = [rows[0]]; // Start with header
+    
+    dataRows.forEach((row) => {
+      if (row[0] === userName) {
+        // If the file is in our sheet but no longer in the recursive Drive list, skip it
+        if (currentDriveFiles.length > 0 && !driveFileNames.includes(row[1])) {
+          rowChanged = true;
+          return; 
+        }
+      }
+      newSheetRows.push(row);
+    });
+
+    if (rowChanged) {
+      await sheets.spreadsheets.values.update({
+        spreadsheetId: GOOGLE_SHEET_ID,
+        range: 'CONTROL!A:C',
+        valueInputOption: 'RAW',
+        requestBody: { values: newSheetRows },
       });
-    const total = userRows.length;
-    const downloaded = userRows.filter(r => r[2] && (r[2].toString().toLowerCase() === 'true')).length;
-
-    // deadline logic is same as before but based on downloads table
-    const userDownloads = downloads.findMany({ userId: userId || '' });
-    let deadline: Date | null = null;
-    if (userDownloads.length > 0) {
-      const earliestDownload = userDownloads.reduce((earliest: any, d: any) => d.downloadedAt < earliest.downloadedAt ? d : earliest);
-      deadline = new Date(new Date(earliestDownload.downloadedAt).getTime() + DEADLINE_HOURS * 60 * 60 * 1000);
-    } else {
-      deadline = new Date(Date.now() + DEADLINE_HOURS * 60 * 60 * 1000);
+      // Clear trailing rows if necessary
+      if (newSheetRows.length < rows.length) {
+         await sheets.spreadsheets.values.clear({
+           spreadsheetId: GOOGLE_SHEET_ID,
+           range: `CONTROL!A${newSheetRows.length + 1}:C${rows.length}`,
+         });
+      }
     }
-    const now = new Date();
-    const timeLeft = deadline > now ? Math.ceil((deadline.getTime() - now.getTime()) / (1000 * 60 * 60)) : 0;
 
-    // prepare file list for UI
-    const requiredFiles = userRows.map(r => ({ name: r[1], downloaded: (r[2] && r[2].toString().toLowerCase() === 'true') }));
+    const finalUserRows = newSheetRows.slice(1).filter(r => r[0] === userName);
+    const requiredFiles = finalUserRows.map(r => {
+      const driveMatch = currentDriveFiles.find(f => f.name === r[1]);
+      return { 
+        name: r[1], 
+        downloaded: (r[2] && r[2].toString().toLowerCase() === 'true'),
+        mimeType: driveMatch ? driveMatch.mimeType : 'application/octet-stream'
+      };
+    });
 
     return NextResponse.json({
-      downloaded,
-      total,
+      downloaded: requiredFiles.filter(f => f.downloaded).length,
+      total: requiredFiles.length,
       deadline: deadline.toISOString(),
-      timeLeft,
+      timeLeft: timeLeftHours,
       requiredFiles,
     });
   } catch (error: any) {
     console.error('compliance handler error', error);
-
-    // if the request failed due to a disabled Sheets API, return a helpful
-    // message so that developers know what to fix
     if (error?.code === 403) {
-      return NextResponse.json(
-        { error: 'Google Sheets API access denied or not enabled' },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: 'Google Sheets API access denied' }, { status: 500 });
     }
-
-    return NextResponse.json({ error: 'Failed to fetch compliance' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed' }, { status: 500 });
   }
-} 
+}
+ 

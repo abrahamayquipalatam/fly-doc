@@ -18,6 +18,14 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     });
 
     const files = response.data.files || [];
+
+    // Fetch folder name for breadcrumbs
+    const folderRes = await drive.files.get({
+      fileId: folderId,
+      fields: 'name',
+    });
+    const folderName = folderRes.data.name;
+
     // If the caller supplied a userName, ensure those files are tracked in CONTROL
     const { searchParams } = new URL(request.url);
     const userName = searchParams.get('userName');
@@ -28,7 +36,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         console.error('failed to ensure control rows for folder listing', err);
       }
     }
-    return NextResponse.json({ files });
+    return NextResponse.json({ files, folderName });
   } catch (error) {
     console.error(error);
     return NextResponse.json({ error: 'Failed to fetch files' }, { status: 500 });

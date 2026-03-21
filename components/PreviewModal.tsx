@@ -33,115 +33,158 @@ const PreviewModal = ({ file, onClose, userId, userName }: PreviewModalProps) =>
   const isPDF = file.mimeType.includes('pdf');
   const isVideo = file.mimeType.includes('video');
   const isAudio = file.mimeType.includes('audio');
+  const isDoc = file.mimeType.includes('word') || file.mimeType.includes('document');
 
   const getPreviewUrl = (file: FileItem) => {
     const base = `/api/files/${file.id}/download?userId=${userId}${userName ? `&userName=${encodeURIComponent(userName)}` : ''}`;
-    if (isImage || isPDF || isVideo || isAudio) {
-      // Usar nuestro propio proxy para tipos que el navegador puede renderizar directamente
+    if (isPDF || isDoc) {
+      // For PDFs and Docs, we use the Google Viewer to only load the first few pages if possible
+      // or append a fragment for PDF viewer
+      const url = isPDF ? `${base}&preview=true#page=1-3` : `https://docs.google.com/viewer?srcid=${file.id}&pid=explorer&efh=false&cp=1-3&a=v&chrome=false&embedded=true`;
+      return url;
+    }
+    if (isImage || isVideo || isAudio) {
       return `${base}&preview=true`;
     }
-    // Para otros archivos, usar el visor oficial de Google Drive
     return `https://drive.google.com/file/d/${file.id}/preview`;
+  };
+
+  const handleDownload = () => {
+    const downloadUrl = `/api/files/${file.id}/download?userId=${userId}${userName ? `&userName=${encodeURIComponent(userName)}` : ''}`;
+    window.location.href = downloadUrl;
+    // Dispatch event to update sidebar immediately
+    window.dispatchEvent(new Event('file-downloaded'));
   };
 
   return (
     <div className="flex-center" style={{
       position: 'fixed',
       inset: 0,
-      backgroundColor: 'rgba(0,0,0,0.4)',
+      backgroundColor: 'rgba(0,0,0,0.6)',
       zIndex: 1000,
-      backdropFilter: 'blur(4px)'
-    }}>
+      backdropFilter: 'blur(8px)',
+    }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
       <div style={{
         backgroundColor: 'var(--bg-color)',
-        borderRadius: '8px',
-        boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
-        width: '90%',
-        maxWidth: '1200px',
-        height: '85vh',
+        borderRadius: '12px',
+        boxShadow: '0 24px 64px rgba(0,0,0,0.4)',
+        width: '94%',
+        maxWidth: '1300px',
+        height: '90vh',
         display: 'flex',
         flexDirection: 'column',
         border: '1px solid var(--border-color)',
         overflow: 'hidden',
-        animation: 'win-open 0.2s cubic-bezier(0, 0, 0.2, 1)'
+        animation: 'win-open 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)'
       }}>
         <style dangerouslySetInnerHTML={{
           __html: `
             @keyframes win-open {
-                from { transform: scale(0.95); opacity: 0; }
+                from { transform: scale(0.9); opacity: 0; }
                 to { transform: scale(1); opacity: 1; }
             }
         `}} />
 
         {/* Title Bar style Win11 */}
         <div style={{
-          height: '50px',
+          height: '60px',
           background: 'var(--bg-color)',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          padding: '0 8px',
+          padding: '0 12px',
           borderBottom: '1px solid var(--border-color)',
           userSelect: 'none'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: '8px' }}>
-            <Win11Icon type={file.mimeType} size={20} />
-            <span style={{ fontSize: '0.85rem', color: 'var(--text-main)' }}>{file.name} - Previsualización</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginLeft: '12px' }}>
+            <Win11Icon type={file.mimeType} size={24} />
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <span style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-main)' }}>{file.name}</span>
+              <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Previsualización (Solo primeras 3 páginas)</span>
+            </div>
           </div>
           <div style={{
             display: 'flex',
             flexDirection: 'row',
             alignItems: 'center',
-            gap: '8px',
+            gap: '12px',
+            marginRight: '8px'
           }}>
             <a
               href={file.webViewLink}
               target="_blank"
               rel="noopener noreferrer"
               style={{
-                height: '32px',
+                height: '36px',
                 padding: '0px 16px',
-                background: 'var(--accent-color)',
-                color: 'white',
-                borderRadius: '4px',
+                background: 'var(--explorer-bg)',
+                color: 'var(--text-main)',
+                border: '1px solid var(--border-color)',
+                borderRadius: '6px',
                 fontSize: '0.85rem',
                 fontWeight: 600,
                 textDecoration: 'none',
                 display: 'flex',
-                alignItems: 'center'
+                alignItems: 'center',
+                gap: '8px'
               }}
+              className="win11-hover"
             >
-              Abrir con Google Drive
-              <div style={{ marginLeft: '4px' }}>
-                <Icon name="external-link" size={14} />
-              </div>
+              Abrir en Drive
+              <Icon name="external-link" size={14} />
             </a>
+            <button
+              onClick={handleDownload}
+              style={{
+                height: '36px',
+                padding: '0px 16px',
+                background: 'var(--accent-color)',
+                color: 'white',
+                borderRadius: '6px',
+                fontSize: '0.85rem',
+                fontWeight: 600,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                cursor: 'pointer'
+              }}
+              className="win11-hover"
+            >
+              <Icon name="download" size={16} />
+              Descargar
+            </button>
             <button
               onClick={onClose}
               className="win11-hover"
               style={{
-                width: '46px',
-                height: '35px',
+                width: '40px',
+                height: '40px',
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
-                color: '#666',
-                borderTopRightRadius: '8px'
+                color: 'var(--text-secondary)',
+                borderRadius: '4px',
+                border: 'none',
+                background: 'transparent'
               }}
               onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#E81123', e.currentTarget.style.color = 'white')}
-              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent', e.currentTarget.style.color = '#666')}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent', e.currentTarget.style.color = 'var(--text-secondary)')}
             >
-              <Icon name="x" size={20} />
+              <Icon name="x" size={24} />
             </button>
           </div>
         </div>
         {/* Preview Content */}
-        <div style={{ flex: 1, backgroundColor: '#f0f2f5', display: 'flex', justifyContent: 'center', alignItems: 'center', overflow: 'hidden', position: 'relative' }}>
+        <div style={{ flex: 1, backgroundColor: 'var(--explorer-bg)', display: 'flex', justifyContent: 'center', alignItems: 'center', overflow: 'hidden', position: 'relative' }}>
           {isImage ? (
             <img
               src={getPreviewUrl(file)}
               alt={file.name}
-              style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', background: 'white', padding: '20px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+              style={{ maxWidth: '90%', maxHeight: '90%', objectFit: 'contain', background: 'white', padding: '10px', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }}
             />
           ) : isVideo ? (
             <video

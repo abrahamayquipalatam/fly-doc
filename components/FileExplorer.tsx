@@ -22,7 +22,7 @@ interface FileItem {
 const FileExplorer = ({ userId }: { userId: string }) => {
   const [currentFolder, setCurrentFolder] = useState<string>('');
   const [files, setFiles] = useState<FileItem[]>([]);
-  const [breadcrumb, setBreadcrumb] = useState<{id:string;name:string}[]>([]);
+  const [breadcrumb, setBreadcrumb] = useState<{ id: string; name: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [previewFile, setPreviewFile] = useState<FileItem | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -53,15 +53,23 @@ const FileExplorer = ({ userId }: { userId: string }) => {
     if (!currentFolder) return;
     setLoading(true);
     setSearchTerm(''); // Limpiar búsqueda al cambiar de carpeta
-    fetch(`/api/folders/${currentFolder}`)
+    fetch(`/api/folders/${currentFolder}${userName ? `?userName=${encodeURIComponent(userName)}` : ''}`)
       .then(res => res.json())
       .then(async data => {
         const fetched = data.files || [];
         setFiles(fetched);
-        // breadcrumb naming
-        if (breadcrumb.length === 1 && breadcrumb[0].id === currentFolder) {
-          setBreadcrumb([{ id: currentFolder, name: data.folderName || 'Root' }]);
-        }
+        
+        // Update breadcrumb with official folder name from API
+        setBreadcrumb(prev => {
+          const idx = prev.findIndex(item => item.id === currentFolder);
+          if (idx !== -1) {
+            const newBreadcrumb = [...prev];
+            newBreadcrumb[idx] = { id: currentFolder, name: data.folderName || newBreadcrumb[idx].name };
+            return newBreadcrumb;
+          }
+          return prev;
+        });
+
         setLoading(false);
         // initialize control sheet rows for this user and these downloadables
         if (userName) {

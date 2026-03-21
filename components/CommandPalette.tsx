@@ -137,8 +137,8 @@ export function CommandPalette() {
                                 className="flex-1 bg-transparent border-none outline-none text-xl font-medium placeholder:text-neutral-400"
                                 style={{ color: 'var(--text-main)' }}
                             />
-                            <div 
-                                className="flex items-center gap-1.5 px-2 py-1 rounded-lg border border-neutral-200 bg-neutral-50 cursor-pointer" 
+                            <div
+                                className="flex items-center gap-1.5 px-2 py-1 rounded-lg border border-neutral-200 bg-neutral-50 cursor-pointer"
                                 style={{ background: 'var(--hover-bg)', borderColor: 'var(--border-color)' }}
                                 onClick={() => setIsOpen(false)}
                             >
@@ -161,7 +161,7 @@ export function CommandPalette() {
                                             "w-full flex items-center justify-between px-6 py-4 group transition-all rounded-lg",
                                             selectedIndex === i ? "bg-neutral-100" : "hover:bg-neutral-50/50"
                                         )}
-                                        style={{ 
+                                        style={{
                                             background: selectedIndex === i ? 'var(--hover-bg)' : 'transparent',
                                         }}
                                     >
@@ -170,7 +170,7 @@ export function CommandPalette() {
                                                 "text-[15px] font-bold leading-tight transition-colors",
                                                 selectedIndex === i ? "text-blue-500" : "text-neutral-900"
                                             )}
-                                            style={{ color: selectedIndex === i ? 'var(--accent-color)' : 'var(--text-main)' }}
+                                                style={{ color: selectedIndex === i ? 'var(--accent-color)' : 'var(--text-main)' }}
                                             >
                                                 {app.name}
                                             </h4>
@@ -178,14 +178,14 @@ export function CommandPalette() {
                                                 {app.url}
                                             </p>
                                         </div>
-                                        <div 
+                                        <div
                                             className={cn(
                                                 "px-3 py-1 text-[10px] font-black tracking-wid rounded-md transition-all",
                                                 selectedIndex === i
                                                     ? "bg-blue-50 text-blue-600"
                                                     : "bg-neutral-100 text-neutral-500 group-hover:bg-blue-50 group-hover:text-blue-600"
                                             )}
-                                            style={{ 
+                                            style={{
                                                 background: selectedIndex === i ? 'var(--accent-color)20' : 'var(--hover-bg)',
                                                 color: selectedIndex === i ? 'var(--accent-color)' : 'var(--text-secondary)'
                                             }}

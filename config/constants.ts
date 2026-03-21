@@ -6,7 +6,7 @@ export const FLOTA_FOLDER_IDS: Record<string, string> = {
 };
 
 // hardcoded test email for the current session
-export const EMAIL = 'abrahamayquipa2000@gmail.com';
+export const EMAIL = 'abraham.ayquipa@latam.com';
 
 // the list of required file ids is no longer maintained manually; compliance is driven by the
 // `CONTROL` sheet.  all files that can be downloaded should be treated as "required" and

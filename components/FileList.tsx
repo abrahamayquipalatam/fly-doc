@@ -1,4 +1,5 @@
 import Win11Icon from './Win11Icon';
+import { Icon } from './Icon';
 
 interface FileItem {
   id: string;
@@ -41,6 +42,14 @@ const FileList = ({ files, onFolderClick, onFileClick, userId, userName, viewMod
 
   const isFolder = (file: FileItem) => file.mimeType === 'application/vnd.google-apps.folder';
 
+  const sortedFiles = [...files].sort((a, b) => {
+    const aIsFolder = isFolder(a);
+    const bIsFolder = isFolder(b);
+    if (aIsFolder && !bIsFolder) return -1;
+    if (!aIsFolder && bIsFolder) return 1;
+    return a.name.localeCompare(b.name);
+  });
+
   if (viewMode === 'grid') {
     return (
       <div className="explorer-view" style={{ overflowY: 'auto', height: '100%', padding: '20px' }}>
@@ -49,7 +58,7 @@ const FileList = ({ files, onFolderClick, onFileClick, userId, userName, viewMod
           gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
           gap: '20px'
         }}>
-          {files.map(file => (
+          {sortedFiles.map(file => (
             <div
               key={file.id}
               className="win11-hover transition-standard pointer"
@@ -76,7 +85,7 @@ const FileList = ({ files, onFolderClick, onFileClick, userId, userName, viewMod
             </div>
           ))}
         </div>
-        {files.length === 0 && (
+        {sortedFiles.length === 0 && (
           <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-secondary)' }}>
             No se encontraron resultados o la carpeta está vacía
           </div>
@@ -91,13 +100,13 @@ const FileList = ({ files, onFolderClick, onFileClick, userId, userName, viewMod
         <thead>
           <tr>
             <th style={{ width: '50%' }}>Nombre</th>
-            <th style={{ width: '25%' }}>Fecha de modificación</th>
+            <th style={{ width: '20%' }}>Fecha de modificación</th>
             <th style={{ width: '10%' }}>Tamaño</th>
-            <th style={{ width: '15%' }}>Acciones</th>
+            <th style={{ width: '20%' }}>Acciones</th>
           </tr>
         </thead>
         <tbody>
-          {files.map(file => (
+          {sortedFiles.map(file => (
             <tr key={file.id} className="transition-standard pointer">
               <td onClick={() => isFolder(file) ? onFolderClick(file) : onFileClick(file)}>
                 <div className="flex items-center" style={{ display: 'flex', alignItems: 'center', gap: '10px', overflow: 'hidden' }}>
@@ -127,7 +136,10 @@ const FileList = ({ files, onFolderClick, onFileClick, userId, userName, viewMod
                           fontSize: '0.8rem',
                           fontWeight: '100',
                           color: 'var(--accent-color)',
-                          display: 'inline-block'
+                          display: 'flex',
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          gap: '4px',
                         }}
                         onClick={(e) => {
                           e.stopPropagation();
@@ -135,16 +147,27 @@ const FileList = ({ files, onFolderClick, onFileClick, userId, userName, viewMod
                           window.dispatchEvent(new Event('file-downloaded'));
                         }}
                       >
+                        <Icon name="download" size={16} />
                         Descargar
                       </a>
                       <button
                         className="win11-hover"
-                        style={{ padding: '4px 8px', border: '1px solid var(--border-color)', borderRadius: '4px', fontSize: '0.8rem' }}
+                        style={{
+                          padding: '4px 8px',
+                          border: '1px solid var(--border-color)',
+                          borderRadius: '4px',
+                          fontSize: '0.8rem',
+                          display: 'flex',
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          gap: '4px',
+                        }}
                         onClick={(e) => {
                           e.stopPropagation();
                           onFileClick(file);
                         }}
                       >
+                        <Icon name="eye" size={16} />
                         Ver
                       </button>
                     </>
