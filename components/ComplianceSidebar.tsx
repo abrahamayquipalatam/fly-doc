@@ -20,6 +20,22 @@ interface ComplianceData {
 const ComplianceSidebar = ({ userId, userName, onClose }: { userId: string; userName?: string, onClose?: () => void }) => {
   const [compliance, setCompliance] = useState<ComplianceData | null>(null);
   const [remainingTime, setRemainingTime] = useState<number>(0);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 768px)');
+
+    const handleChange = (e: MediaQueryListEvent | MediaQueryList) => {
+      setIsMobile(e.matches);
+    };
+
+    handleChange(media);
+    media.addEventListener('change', handleChange);
+
+    return () => {
+      media.removeEventListener('change', handleChange);
+    };
+  }, []);
 
   useEffect(() => {
     const fetchCompliance = () => {
@@ -116,7 +132,7 @@ const ComplianceSidebar = ({ userId, userName, onClose }: { userId: string; user
           <h2 style={{ fontSize: '1.2rem', fontWeight: 600, marginBottom: '8px' }}>FlyDoc LATAM Explorer</h2>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Control de Publicaciones</p>
         </div>
-        {onClose && (
+        {onClose && isMobile && (
           <button
             onClick={() => onClose()}
             style={{

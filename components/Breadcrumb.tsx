@@ -12,7 +12,7 @@ interface BreadcrumbProps {
 }
 
 const Breadcrumb = ({ breadcrumb, onClick }: BreadcrumbProps) => (
-  <nav style={{
+  <nav className="hide-on-mobile" style={{
     display: 'flex',
     alignItems: 'center',
     gap: '8px',

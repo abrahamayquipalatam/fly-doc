@@ -5,6 +5,7 @@ import Win11Icon from './Win11Icon';
 import { Icon } from './Icon';
 import Image from 'next/image';
 import Logo from '../assets/flydoc-logo-negro.png';
+import LogoShort from '../assets/logo-short.png';
 
 interface FileItem {
     id: string;
@@ -146,7 +147,7 @@ const NavigationSidebar: React.FC<NavigationSidebarProps> = ({ currentFolderId, 
 
     useEffect(() => {
         const handleResize = () => {
-            setIsMobile(window.innerWidth < 640);
+            setIsMobile(window.innerWidth < 768);
         };
         handleResize();
         window.addEventListener('resize', handleResize);
@@ -172,6 +173,15 @@ const NavigationSidebar: React.FC<NavigationSidebarProps> = ({ currentFolderId, 
             transition: 'width 0.3s ease'
         }}>
             <div className="sidebar-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: isCollapsed ? '8px 0 16px 0' : '8px 12px 16px 24px', flexWrap: 'nowrap' }}>
+                {isMobile && isCollapsed && (
+                    <div style={{
+                        padding: '8px',
+                        width: '100%',
+                        textAlign: 'left'
+                    }}>
+                        <Image src={LogoShort} alt="FlyDoc Logo" height={24} style={{ width: 'auto' }} />
+                    </div>
+                )}
                 {!isCollapsed && (
                     <div className="logo-container">
                         <Image src={Logo} alt="FlyDoc Logo" height={42} style={{ width: 'auto' }} />
