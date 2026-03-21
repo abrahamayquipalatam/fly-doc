@@ -99,10 +99,10 @@ const FileList = ({ files, onFolderClick, onFileClick, userId, userName, viewMod
       <table className="explorer-table no-select" style={{ width: '100%' }}>
         <thead>
           <tr>
-            <th style={{ width: 'auto', minWidth: '200px' }}>Nombre</th>
+            <th style={{ width: 'auto', minWidth: '150px' }}>Nombre</th>
             <th className="hide-on-tablet" style={{ width: '25%' }}>Fecha de modificación</th>
             <th className="hide-on-tablet" style={{ width: '15%' }}>Tamaño</th>
-            <th style={{ width: '180px' }}>Acciones</th>
+            <th style={{ width: '160px' }}>Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -126,18 +126,18 @@ const FileList = ({ files, onFolderClick, onFileClick, userId, userName, viewMod
                 {isFolder(file) ? '' : formatSize(file.size)}
               </td>
               <td>
-                <div className="flex items-center gap-2" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                <div className="flex items-center" style={{ display: 'flex', gap: '6px', flexWrap: 'nowrap' }}>
                   {!isFolder(file) && (
                     <>
                       <a
                         href={`/api/files/${file.id}/download?userId=${userId}${userName ? `&userName=${encodeURIComponent(userName)}` : ''}`}
                         className="win11-hover"
                         style={{
-                          padding: '6px 10px',
+                          padding: '5px 8px',
                           border: '1px solid var(--border-color)',
                           borderRadius: '4px',
                           textDecoration: 'none',
-                          fontSize: '0.75rem',
+                          fontSize: '0.7rem',
                           fontWeight: '500',
                           color: 'var(--accent-color)',
                           display: 'flex',
@@ -146,34 +146,36 @@ const FileList = ({ files, onFolderClick, onFileClick, userId, userName, viewMod
                           gap: '4px',
                           whiteSpace: 'nowrap'
                         }}
-
                         onClick={(e) => {
                           e.stopPropagation();
-                          // notify sidebar that a file download was initiated
                           window.dispatchEvent(new Event('file-downloaded'));
                         }}
                       >
-                        <Icon name="download" size={16} />
+                        <Icon name="download" size={14} />
                         Descargar
                       </a>
                       <button
                         className="win11-hover"
                         style={{
-                          padding: '4px 8px',
+                          padding: '5px 8px',
                           border: '1px solid var(--border-color)',
                           borderRadius: '4px',
-                          fontSize: '0.8rem',
+                          fontSize: '0.7rem',
                           display: 'flex',
                           flexDirection: 'row',
                           alignItems: 'center',
                           gap: '4px',
+                          whiteSpace: 'nowrap',
+                          background: 'transparent',
+                          color: 'inherit',
+                          cursor: 'pointer'
                         }}
                         onClick={(e) => {
                           e.stopPropagation();
                           onFileClick(file);
                         }}
                       >
-                        <Icon name="eye" size={16} />
+                        <Icon name="eye" size={14} />
                         Ver
                       </button>
                     </>
@@ -185,7 +187,6 @@ const FileList = ({ files, onFolderClick, onFileClick, userId, userName, viewMod
           {files.length === 0 && (
             <tr>
               <td colSpan={4} style={{ textAlign: 'center', padding: '40px', color: 'var(--text-secondary)' }}>
-                {/* Si hay archivos pero el filtro los quita todos, mostramos 'No se encontraron resultados' */}
                 No se encontraron resultados o la carpeta está vacía
               </td>
             </tr>

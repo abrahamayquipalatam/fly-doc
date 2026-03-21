@@ -1,4 +1,4 @@
-import { GOOGLE_SHEET_ID, DB_SHEET_NAME, FLOTA_FOLDER_IDS } from '@/config/constants';
+import { GOOGLE_SHEET_ID_AUTH, DB_SHEET_NAME, FLOTA_FOLDER_IDS } from '@/config/constants';
 import { NextRequest, NextResponse } from 'next/server';
 import { sheets } from '../../../lib/google-drive';
 
@@ -21,9 +21,10 @@ export async function GET(request: NextRequest) {
 
     // grab the entire BD sheet (columns A:D)
     const resp = await sheets.spreadsheets.values.get({
-      spreadsheetId: GOOGLE_SHEET_ID,
+      spreadsheetId: GOOGLE_SHEET_ID_AUTH,
       range: `${DB_SHEET_NAME}!A:D`,
     });
+
 
     const rows: any[] = resp.data.values || [];
     // skip header row if present
