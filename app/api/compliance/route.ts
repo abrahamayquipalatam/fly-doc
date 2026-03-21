@@ -1,4 +1,4 @@
-import { GOOGLE_SHEET_ID, EMAIL, FLOTA_FOLDER_IDS } from '@/config/constants';
+import { GOOGLE_SHEET_ID, DB_SHEET_NAME, FLOTA_FOLDER_IDS } from '@/config/constants';
 import { NextRequest, NextResponse } from 'next/server';
 import { downloads } from '../../../lib/db';
 import { sheets, drive } from '../../../lib/google-drive';
@@ -43,11 +43,12 @@ export async function GET(request: NextRequest) {
     // 2. Fetch all current files in the user's Drive hierarchy
     const dbResp = await sheets.spreadsheets.values.get({
       spreadsheetId: GOOGLE_SHEET_ID,
-      range: 'DB!A:C',
+      range: `${DB_SHEET_NAME}!A:C`,
     });
     const dbRows = dbResp.data.values || [];
     // Identify user in DB
-    const userDbRow = dbRows.find(r => r[0] === userName || r[1] === EMAIL);
+    const userDbRow = dbRows.find(r => r[0] === userName);
+
     let currentDriveFiles: {id: string, name: string, mimeType: string}[] = [];
 
     if (userDbRow) {

@@ -5,16 +5,7 @@ export const FLOTA_FOLDER_IDS: Record<string, string> = {
   '787': '1zaFqFHz13gljtWW18i7imITQ2ut68Ame',
 };
 
-// hardcoded test email for the current session
-export const EMAIL = 'abraham.ayquipa@latam.com';
-
-// the list of required file ids is no longer maintained manually; compliance is driven by the
-// `CONTROL` sheet.  all files that can be downloaded should be treated as "required" and
-// are populated in CONTROL automatically when a user browses or downloads them.  this
-// constant exists only for backwards compatibility and is effectively unused.
-export const REQUIRED_FILE_IDS: string[] = [];
-
-export const DEADLINE_HOURS = 1;
-
 // spreadsheet used both for DB lookups and CONTROL tracking
-export const GOOGLE_SHEET_ID = '1A8wfRvUkrEof8z_7ToMSE9v_h71Q_AKs44IoAsAx92E'; // updated to new shared workbook
+export const GOOGLE_SHEET_ID = '1xtRLHwiUrprdSXieY9ynJBe92GHY0CjLowgIWWIS5A0'; // Nueva ID proporcionada por el usuario
+export const DB_SHEET_NAME = 'BD';
+export const DEADLINE_HOURS = 1;

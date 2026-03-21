@@ -19,7 +19,7 @@ interface FileItem {
   webViewLink?: string;
 }
 
-const FileExplorer = ({ userId }: { userId: string }) => {
+const FileExplorer = ({ userId, userEmail }: { userId: string, userEmail: string }) => {
   const [currentFolder, setCurrentFolder] = useState<string>('');
   const [files, setFiles] = useState<FileItem[]>([]);
   const [breadcrumb, setBreadcrumb] = useState<{ id: string; name: string }[]>([]);
@@ -33,7 +33,7 @@ const FileExplorer = ({ userId }: { userId: string }) => {
 
   // fetch user info (name, flota, folderId) once at startup
   useEffect(() => {
-    fetch('/api/user')
+    fetch(`/api/user?email=${encodeURIComponent(userEmail)}`)
       .then(res => res.json())
       .then(data => {
         if (data.folderId) {
@@ -46,7 +46,8 @@ const FileExplorer = ({ userId }: { userId: string }) => {
         if (data.folderId) setBreadcrumb([{ id: data.folderId, name: data.flota ? `Flota ${data.flota}` : 'Google Drive' }]);
       })
       .catch(err => console.error('failed to fetch user info', err));
-  }, []);
+  }, [userEmail]);
+
 
   // load files whenever currentFolder changes
   useEffect(() => {
