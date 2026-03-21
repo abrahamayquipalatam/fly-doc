@@ -107,18 +107,36 @@ const FileExplorer = ({ userId }: { userId: string }) => {
     setBreadcrumb([{ id, name }]);
   };
 
-  // only show the folder that corresponds to the user's flota, if known
   const rootFolderConfigs = flotaFolderId
     ? [{ id: flotaFolderId, name: flota ? `Flota ${flota}` : 'Mi carpeta' }]
     : [];
 
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [complianceVisible, setComplianceVisible] = useState(false);
+
+  // Auto-collapse sidebar on small screens
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth <= 1024) {
+        setSidebarCollapsed(true);
+      } else {
+        setSidebarCollapsed(false);
+      }
+    };
+    handleResize(); // initial check
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   return (
-    <div style={{ display: 'flex', flex: 1, height: '100%', overflow: 'hidden' }}>
+    <div style={{ display: 'flex', flex: 1, height: '100%', overflow: 'hidden', position: 'relative' }}>
       <NavigationSidebar
         currentFolderId={currentFolder}
         rootFolders={rootFolderConfigs}
         onFolderSelect={handleSidebarFolderSelect}
         onFileSelect={(file) => setPreviewFile(file as any)}
+        isCollapsed={sidebarCollapsed}
+        onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
       />
 
       <main style={{
@@ -128,7 +146,8 @@ const FileExplorer = ({ userId }: { userId: string }) => {
         background: 'var(--explorer-bg)',
         position: 'relative',
         overflow: 'hidden',
-        padding: '20px 0px'
+        padding: '20px 0px',
+        zIndex: 1
       }}>
         {/* Barra de herramientas superior estilo Win11 */}
         <header style={{
@@ -138,15 +157,18 @@ const FileExplorer = ({ userId }: { userId: string }) => {
           flexDirection: 'column',
           gap: '12px'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <button
-              onClick={() => handleBreadcrumbClick(Math.max(0, breadcrumb.length - 2))}
-              style={{ padding: '4px', opacity: breadcrumb.length > 1 ? 1 : 0.3 }}
-              disabled={breadcrumb.length <= 1}
-            >
-              <Icon name="arrow-left" size={20} />
-            </button>
-            <Breadcrumb breadcrumb={breadcrumb} onClick={handleBreadcrumbClick} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <button
+                onClick={() => handleBreadcrumbClick(Math.max(0, breadcrumb.length - 2))}
+                style={{ padding: '4px', opacity: breadcrumb.length > 1 ? 1 : 0.3 }}
+                disabled={breadcrumb.length <= 1}
+              >
+                <Icon name="arrow-left" size={20} />
+              </button>
+              <Breadcrumb breadcrumb={breadcrumb} onClick={handleBreadcrumbClick} />
+            </div>
+            
             <div style={{
               marginLeft: 'auto',
               display: 'flex',
@@ -155,20 +177,42 @@ const FileExplorer = ({ userId }: { userId: string }) => {
               padding: '8px 12px',
               border: '1px solid var(--border-color)',
               borderRadius: '4px',
-              fontSize: '0.85rem'
+              fontSize: '0.85rem',
+              minWidth: '150px',
+              flex: 1,
+              maxWidth: '300px'
             }}>
               <Icon name="search" size={16} className="text-neutral-400" />
               <input
                 type="text"
-                placeholder="Buscar en esta carpeta"
+                placeholder="Buscar..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                style={{ background: 'transparent', outline: 'none', border: 'none', color: 'inherit', width: '200px' }}
+                style={{ background: 'transparent', outline: 'none', border: 'none', color: 'inherit', width: '100%' }}
               />
             </div>
+
+            <button
+              onClick={() => setComplianceVisible(!complianceVisible)}
+              className="win11-hover"
+              style={{
+                display: 'none', // Shown only on tablet via media query (handled by class)
+                padding: '8px',
+                borderRadius: '4px',
+                border: '1px solid var(--border-color)',
+              }}
+              id="compliance-toggle-btn"
+            >
+              <Icon name="info" size={20} color={complianceVisible ? 'var(--accent-color)' : 'inherit'} />
+            </button>
+            <style dangerouslySetInnerHTML={{ __html: `
+              @media (max-width: 1024px) {
+                #compliance-toggle-btn { display: flex !important; }
+              }
+            `}} />
           </div>
 
-          <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+          <div style={{ display: 'flex', gap: '8px', marginTop: '4px', overflowX: 'auto', paddingBottom: '4px' }}>
             <button
               onClick={() => setViewMode('list')}
               className={`win11-hover ${viewMode === 'list' ? 'selected' : ''}`}
@@ -180,7 +224,8 @@ const FileExplorer = ({ userId }: { userId: string }) => {
                 alignItems: 'center',
                 gap: '6px',
                 background: viewMode === 'list' ? 'var(--selected-bg)' : 'transparent',
-                border: '1px solid ' + (viewMode === 'list' ? 'var(--accent-color)' : 'transparent')
+                border: '1px solid ' + (viewMode === 'list' ? 'var(--accent-color)' : 'transparent'),
+                whiteSpace: 'nowrap'
               }}
             >
               <Icon name="list" size={16} /> Lista
@@ -196,13 +241,13 @@ const FileExplorer = ({ userId }: { userId: string }) => {
                 alignItems: 'center',
                 gap: '6px',
                 background: viewMode === 'grid' ? 'var(--selected-bg)' : 'transparent',
-                border: '1px solid ' + (viewMode === 'grid' ? 'var(--accent-color)' : 'transparent')
+                border: '1px solid ' + (viewMode === 'grid' ? 'var(--accent-color)' : 'transparent'),
+                whiteSpace: 'nowrap'
               }}
             >
               <Icon name="layout-grid" size={16} /> Cuadrícula
             </button>
           </div>
-          {/* Las opciones de Nuevo, Pegar, Cortar y Copiar han sido eliminadas por solicitud del usuario */}
         </header>
 
         {loading ? (
@@ -219,7 +264,7 @@ const FileExplorer = ({ userId }: { userId: string }) => {
           <FileList
             files={files.filter(f => f.name.toLowerCase().includes(searchTerm.toLowerCase()))}
             onFolderClick={handleFolderClick}
-            onFileClick={(file) => setPreviewFile(file)}
+            onFileClick={(file: FileItem) => setPreviewFile(file)}
             userId={userId}
             userName={userName}
             viewMode={viewMode}
@@ -231,7 +276,37 @@ const FileExplorer = ({ userId }: { userId: string }) => {
         )}
       </main>
 
-      <ComplianceSidebar userId={userId} userName={userName} />
+      {/* Compliance Sidebar - On desktop it's fixed, on tablet it can be toggled */}
+      <aside className={`compliance-container ${complianceVisible ? 'visible' : ''}`} style={{
+        height: '100%',
+        zIndex: 10,
+        transition: 'transform 0.3s ease-in-out',
+        background: 'var(--bg-color)',
+      }}>
+        <ComplianceSidebar userId={userId} userName={userName} />
+      </aside>
+
+      <style dangerouslySetInnerHTML={{ __html: `
+        @media (max-width: 1024px) {
+          .compliance-container {
+            position: absolute;
+            right: 0;
+            top: 0;
+            transform: translateX(100%);
+            box-shadow: -10px 0 30px rgba(0,0,0,0.1);
+          }
+          .compliance-container.visible {
+            transform: translateX(0);
+          }
+        }
+        @media (min-width: 1025px) {
+          .compliance-container {
+            display: block !important;
+            transform: none !important;
+            position: relative !important;
+          }
+        }
+      `}} />
     </div>
   );
 };

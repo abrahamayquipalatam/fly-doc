@@ -96,13 +96,13 @@ const FileList = ({ files, onFolderClick, onFileClick, userId, userName, viewMod
 
   return (
     <div className="explorer-view" style={{ overflowY: 'auto', height: '100%' }}>
-      <table className="explorer-table no-select" style={{ tableLayout: 'fixed', width: '100%' }}>
+      <table className="explorer-table no-select" style={{ width: '100%' }}>
         <thead>
           <tr>
-            <th style={{ width: '50%' }}>Nombre</th>
-            <th style={{ width: '20%' }}>Fecha de modificación</th>
-            <th style={{ width: '10%' }}>Tamaño</th>
-            <th style={{ width: '20%' }}>Acciones</th>
+            <th style={{ width: 'auto', minWidth: '200px' }}>Nombre</th>
+            <th className="hide-on-tablet" style={{ width: '25%' }}>Fecha de modificación</th>
+            <th className="hide-on-tablet" style={{ width: '15%' }}>Tamaño</th>
+            <th style={{ width: '180px' }}>Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -115,32 +115,38 @@ const FileList = ({ files, onFolderClick, onFileClick, userId, userName, viewMod
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap',
-                    fontWeight: '100'
+                    fontWeight: '400'
                   }} title={file.name}>{file.name}</span>
                 </div>
               </td>
-              <td>{formatDate(file.modifiedTime)}</td>
-              <td>{isFolder(file) ? '' : formatSize(file.size)}</td>
+              <td className="hide-on-tablet" style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                {formatDate(file.modifiedTime)}
+              </td>
+              <td className="hide-on-tablet" style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                {isFolder(file) ? '' : formatSize(file.size)}
+              </td>
               <td>
-                <div className="flex items-center gap-2" style={{ display: 'flex', gap: '8px' }}>
+                <div className="flex items-center gap-2" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                   {!isFolder(file) && (
                     <>
                       <a
                         href={`/api/files/${file.id}/download?userId=${userId}${userName ? `&userName=${encodeURIComponent(userName)}` : ''}`}
                         className="win11-hover"
                         style={{
-                          padding: '4px 8px',
+                          padding: '6px 10px',
                           border: '1px solid var(--border-color)',
                           borderRadius: '4px',
                           textDecoration: 'none',
-                          fontSize: '0.8rem',
-                          fontWeight: '100',
+                          fontSize: '0.75rem',
+                          fontWeight: '500',
                           color: 'var(--accent-color)',
                           display: 'flex',
                           flexDirection: 'row',
                           alignItems: 'center',
                           gap: '4px',
+                          whiteSpace: 'nowrap'
                         }}
+
                         onClick={(e) => {
                           e.stopPropagation();
                           // notify sidebar that a file download was initiated

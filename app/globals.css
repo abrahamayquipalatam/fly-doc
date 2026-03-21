@@ -158,3 +158,39 @@ button {
 .no-select {
   user-select: none;
 }
+
+/* Responsive Utilities */
+@media (max-width: 1024px) {
+  .hide-on-tablet {
+    display: none !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .hide-on-mobile {
+    display: none !important;
+  }
+}
+
+/* Collapsible Sidebar Styles */
+.sidebar-collapsed {
+  width: 60px !important;
+  padding: 16px 4px !important;
+}
+
+.sidebar-collapsed .sidebar-label,
+.sidebar-collapsed .tree-item-text,
+.sidebar-collapsed footer,
+.sidebar-collapsed .logo-container {
+  display: none !important;
+}
+
+.sidebar-collapsed .tree-item-button {
+  padding-left: 12px !important;
+  justify-content: center;
+}
+
+.sidebar-collapsed .sidebar-header {
+  padding-left: 0 !important;
+  justify-content: center;
+}
