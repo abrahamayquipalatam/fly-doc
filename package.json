@@ -6,10 +6,13 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
+    "@prisma/adapter-better-sqlite3": "^7.5.0",
     "@prisma/client": "^7.4.2",
+    "better-sqlite3": "^12.8.0",
     "clsx": "^2.1.1",
     "framer-motion": "^12.35.2",
     "googleapis": "^171.4.0",
@@ -19,7 +22,6 @@
     "prisma": "^7.4.2",
     "react": "19.2.3",
     "react-dom": "19.2.3",
-    "sqlite3": "^5.1.7",
     "tailwind-merge": "^3.5.0"
   },
   "devDependencies": {
