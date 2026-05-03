@@ -16,13 +16,4 @@ export const FLOTA_FOLDER_IDS: Record<string, string> = {
   'DESPACHO': 'TxhbCe6tsGpQAbTQTrqj4sJ_2Bfyfu8'
 };
 
-export const GOOGLE_SHEET_ID = '1whwB4OoCfiVnCzk6SIssDoVcflBCfWZD';
-
-// Spreadsheet for authentication (BD sheet) ya no sirve
-export const GOOGLE_SHEET_ID_AUTH = '1xtRLHwiUrprdSXieY9ynJBe92GHY0CjLowgIWWIS5A0';
-export const DB_SHEET_NAME = 'BD FLYDOC';
-
-export const DEADLINE_HOURS = 1;
-
-// Backwards compatibility
-export const REQUIRED_FILE_IDS: string[] = [];
+export const GOOGLE_SHEET_ID = '1dPN5D_V_oLIAyC1sRi1eVqGGGg-wcxd7hvjPOzjaOWo';

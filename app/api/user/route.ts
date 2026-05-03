@@ -1,15 +1,21 @@
-import { GOOGLE_SHEET_ID_AUTH, DB_SHEET_NAME, FLOTA_FOLDER_IDS } from '@/config/constants';
+import { GOOGLE_SHEET_ID, FLOTA_FOLDER_IDS } from '@/config/constants';
 import { NextRequest, NextResponse } from 'next/server';
 import { sheets } from '../../../lib/google-drive';
+
+interface FolderInfo {
+  id: string;
+  name: string;
+}
 
 interface UserInfo {
   name: string;
   email: string;
   flota: string;
-  folderId: string;
+  folders: FolderInfo[];
+  folderId: string; // for backwards compatibility
 }
 
-// reads the "BD" sheet looking for the email and returns user info
+// reads the "CONTROL" sheet looking for the email and returns user info
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -19,24 +25,55 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Email parameter is required' }, { status: 400 });
     }
 
-    // grab the entire BD sheet (columns A:D)
+    // grab the CONTROL sheet
     const resp = await sheets.spreadsheets.values.get({
-      spreadsheetId: GOOGLE_SHEET_ID_AUTH,
-      range: `${DB_SHEET_NAME}!A:D`,
+      spreadsheetId: GOOGLE_SHEET_ID,
+      range: `CONTROL`,
     });
-
 
     const rows: any[] = resp.data.values || [];
     // skip header row if present
     for (let i = 1; i < rows.length; i++) {
-        // NOMBRES Y APELLIDOS	CORREO	FLOTA	CONTRASEÑA
-        const [name, email, flota] = rows[i];
-      if (email?.toLowerCase() === emailToFind.toLowerCase()) {
-        const folderId = FLOTA_FOLDER_IDS[flota];
-        if (!folderId) {
+        const r = rows[i];
+        if (r.length < 5) continue;
+        
+        // |BP|FLOTA|RANGO|APELLIDOS Y NOMBRES|CORREO|
+        const rFlota = r[1];
+        const rRango = r[2];
+        const rName = r[3];
+        const email = r[4];
+        
+      if (email?.toString().toLowerCase().trim() === emailToFind.toLowerCase().trim()) {
+        const folders = [];
+        let mappedFlota = rFlota || '';
+        if (mappedFlota.includes('320')) mappedFlota = '320';
+        else if (mappedFlota.includes('767')) mappedFlota = '767';
+        else if (mappedFlota.includes('787')) mappedFlota = '787';
+        else if (mappedFlota === 'DV') mappedFlota = 'DESPACHO';
+
+        const mainFolderId = FLOTA_FOLDER_IDS[mappedFlota];
+        if (mainFolderId) {
+            folders.push({ id: mainFolderId, name: `Flota ${rFlota}` });
+        }
+        
+        if (rRango === 'EXCP') {
+            const despachoId = FLOTA_FOLDER_IDS['DESPACHO'];
+            if (despachoId) {
+                folders.push({ id: despachoId, name: 'DESPACHO' });
+            }
+        }
+        
+        if (folders.length === 0) {
           return NextResponse.json({ error: 'Unknown flota for user' }, { status: 500 });
         }
-        const result: UserInfo = { name, email, flota, folderId };
+        
+        const result: UserInfo = { 
+            name: rName, 
+            email, 
+            flota: rFlota, 
+            folders,
+            folderId: folders[0].id // fallback
+        };
         return NextResponse.json(result);
       }
     }
@@ -54,4 +91,4 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ error: 'Failed to fetch user information' }, { status: 500 });
   }
-} 
+}

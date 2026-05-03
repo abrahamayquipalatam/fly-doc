@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import NavigationSidebar from '../components/NavigationSidebar';
-import ComplianceSidebar from '../components/ComplianceSidebar';
 import FileList from '../components/FileList';
 import Breadcrumb from '../components/Breadcrumb';
 import PreviewModal from '../components/PreviewModal';
@@ -29,23 +28,26 @@ const FileExplorer = ({ userId, userEmail }: { userId: string, userEmail: string
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
   const [userName, setUserName] = useState<string>('');
-  const [flotaFolderId, setFlotaFolderId] = useState<string>('');
+  const [rootFolders, setRootFolders] = useState<{ id: string, name: string }[]>([]);
   const [flota, setFlota] = useState<string>('');
   const [showToast, setShowToast] = useState(false);
 
-  // fetch user info (name, flota, folderId) once at startup
+  // fetch user info once at startup
   useEffect(() => {
     fetch(`/api/user?email=${encodeURIComponent(userEmail)}`)
       .then(res => res.json())
       .then(data => {
-        if (data.folderId) {
-          setFlotaFolderId(data.folderId);
+        if (data.folders && data.folders.length > 0) {
+          setRootFolders(data.folders);
+          setCurrentFolder(data.folders[0].id);
+          setBreadcrumb([{ id: data.folders[0].id, name: data.folders[0].name }]);
+        } else if (data.folderId) {
+          setRootFolders([{ id: data.folderId, name: data.flota ? `Flota ${data.flota}` : 'Google Drive' }]);
           setCurrentFolder(data.folderId);
+          setBreadcrumb([{ id: data.folderId, name: data.flota ? `Flota ${data.flota}` : 'Google Drive' }]);
         }
         if (data.name) setUserName(data.name);
         if (data.flota) setFlota(data.flota);
-        // breadcrumb initial
-        if (data.folderId) setBreadcrumb([{ id: data.folderId, name: data.flota ? `Flota ${data.flota}` : 'Google Drive' }]);
       })
       .catch(err => console.error('failed to fetch user info', err));
   }, [userEmail]);
@@ -74,19 +76,6 @@ const FileExplorer = ({ userId, userEmail }: { userId: string, userEmail: string
         });
 
         setLoading(false);
-        // initialize control sheet rows for this user and these downloadables
-        if (userName) {
-          try {
-            const downloadable = fetched.filter((f: any) => f.mimeType !== 'application/vnd.google-apps.folder');
-            await fetch('/api/control', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ userName, files: downloadable.map((f: any) => ({ id: f.id, name: f.name })) }),
-            });
-          } catch (err) {
-            console.error('failed to init control rows', err);
-          }
-        }
       })
       .catch((err) => {
         console.error('Error fetching folder:', err);
@@ -122,12 +111,7 @@ const FileExplorer = ({ userId, userEmail }: { userId: string, userEmail: string
     }
   };
 
-  const rootFolderConfigs = flotaFolderId
-    ? [{ id: flotaFolderId, name: flota ? `Flota ${flota}` : 'Mi carpeta' }]
-    : [];
-
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [complianceVisible, setComplianceVisible] = useState(false);
 
   // Auto-collapse sidebar on small screens
   useEffect(() => {
@@ -147,7 +131,7 @@ const FileExplorer = ({ userId, userEmail }: { userId: string, userEmail: string
     <div style={{ display: 'flex', flex: 1, height: '100%', overflow: 'hidden', position: 'relative' }}>
       <NavigationSidebar
         currentFolderId={currentFolder}
-        rootFolders={rootFolderConfigs}
+        rootFolders={rootFolders}
         onFolderSelect={handleSidebarFolderSelect}
         onFileSelect={(file: any) => { setShowToast(true); setPreviewFile(file as any); }}
         isCollapsed={sidebarCollapsed}
@@ -206,26 +190,6 @@ const FileExplorer = ({ userId, userEmail }: { userId: string, userEmail: string
                 style={{ background: 'transparent', outline: 'none', border: 'none', color: 'inherit', width: '100%' }}
               />
             </div>
-
-            <button
-              onClick={() => setComplianceVisible(!complianceVisible)}
-              className="win11-hover"
-              style={{
-                display: 'none', // Shown only on tablet via media query (handled by class)
-                padding: '8px',
-                borderRadius: '4px',
-                border: '1px solid var(--border-color)',
-              }}
-              id="compliance-toggle-btn"
-            >
-              <Icon name="analytics" size={20} color={'#868686ff'} />
-            </button>
-            <style dangerouslySetInnerHTML={{
-              __html: `
-              @media (max-width: 1024px) {
-                #compliance-toggle-btn { display: flex !important; }
-              }
-            `}} />
           </div>
 
           <div style={{ display: 'flex', gap: '8px', marginTop: '4px', overflowX: 'auto', paddingBottom: '4px' }}>
@@ -301,57 +265,10 @@ const FileExplorer = ({ userId, userEmail }: { userId: string, userEmail: string
 
         <Toast isVisible={showToast} message="Obteniendo archivo..." />
       </main>
-
-      {/* Compliance Sidebar Backdrop - Only mobile/tablet */}
-      {complianceVisible && (
-        <div
-          onClick={() => setComplianceVisible(false)}
-          className="compliance-backdrop"
-          style={{
-            position: 'fixed',
-            inset: 0,
-            backgroundColor: 'rgba(0,0,0,0.6)',
-            backdropFilter: 'blur(8px)',
-            zIndex: 998,
-            display: 'none' // Hidden by default, shown via media query
-          }}
-        />
-      )}
-
-      {/* Compliance Sidebar - On desktop it's fixed, on tablet it can be toggled */}
-      <aside className={`compliance-container ${complianceVisible ? 'visible' : ''}`} style={{
-        height: '100%',
-        zIndex: 999,
-        transition: 'transform 0.3s ease-in-out',
-        background: 'var(--bg-color)',
-      }}>
-        <ComplianceSidebar userId={userId} userName={userName} onClose={() => setComplianceVisible(false)} />
-      </aside>
-
       <style dangerouslySetInnerHTML={{
         __html: `
         @media (max-width: 1024px) {
-          .compliance-backdrop {
-            display: block !important;
-          }
-          .compliance-container {
-            position: fixed;
-            right: 0;
-            top: 0;
-            transform: translateX(100%);
-            box-shadow: -10px 0 30px rgba(0,0,0,0.3);
-          }
-          .compliance-container.visible {
-            transform: translateX(0);
-          }
-        }
-        @media (min-width: 1025px) {
-          .compliance-container {
-            display: block !important;
-            transform: none !important;
-            position: relative !important;
-            z-index: 10 !important;
-          }
+          /* Responsive updates if needed */
         }
       `}} />
     </div>
