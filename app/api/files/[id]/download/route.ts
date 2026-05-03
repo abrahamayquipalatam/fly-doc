@@ -1,8 +1,5 @@
-import { DEADLINE_HOURS } from '@/config/constants';
 import { NextRequest, NextResponse } from 'next/server';
 import { drive } from '../../../../../lib/google-drive';
-import { downloads } from '../../../../../lib/db';
-import { ensureControlRows, markFileRead } from '../../../../../lib/control';
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id: fileId } = await params;
@@ -32,32 +29,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     const file = fileResponse.data;
     let fileName = file.name || '';
-
-    // Register download
-    const downloadedAt = new Date();
-    const deadline = new Date(downloadedAt.getTime() + DEADLINE_HOURS * 60 * 60 * 1000);
-
-    downloads.create({
-      fileId: targetId,
-      userId,
-      downloadedAt: downloadedAt.toISOString(),
-      deadline: deadline.toISOString(),
-    });
-
-    // ensure control tracking happens before marking as read
-    const userName = searchParams.get('userName');
-    if (userName && !preview) { // Solo marcar si no es previsualización
-      try {
-        await ensureControlRows(userName, [{ name: fileName }]);
-      } catch (err) {
-        console.error('failed to ensure control row pre-mark:', err);
-      }
-      try {
-        await markFileRead(userName, fileName);
-      } catch (err) {
-        console.error('failed to mark control row:', err);
-      }
-    }
 
     const isGoogleDoc = file.mimeType?.startsWith('application/vnd.google-apps.');
     const isExportable = isGoogleDoc && !file.mimeType?.endsWith('.folder') && !file.mimeType?.endsWith('.shortcut');

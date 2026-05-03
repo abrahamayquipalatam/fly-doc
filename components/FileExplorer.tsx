@@ -8,6 +8,7 @@ import PreviewModal from '../components/PreviewModal';
 import Toast from './Toast';
 import { FLOTA_FOLDER_IDS } from '@/config/constants';
 import { Icon } from './Icon';
+import AvatarMenu from './AvatarMenu';
 
 interface FileItem {
   id: string;
@@ -39,8 +40,13 @@ const FileExplorer = ({ userId, userEmail }: { userId: string, userEmail: string
       .then(data => {
         if (data.folders && data.folders.length > 0) {
           setRootFolders(data.folders);
-          setCurrentFolder(data.folders[0].id);
-          setBreadcrumb([{ id: data.folders[0].id, name: data.folders[0].name }]);
+          if (data.folders.length > 1) {
+            setCurrentFolder('root');
+            setBreadcrumb([{ id: 'root', name: 'Inicio' }]);
+          } else {
+            setCurrentFolder(data.folders[0].id);
+            setBreadcrumb([{ id: data.folders[0].id, name: data.folders[0].name }]);
+          }
         } else if (data.folderId) {
           setRootFolders([{ id: data.folderId, name: data.flota ? `Flota ${data.flota}` : 'Google Drive' }]);
           setCurrentFolder(data.folderId);
@@ -58,6 +64,19 @@ const FileExplorer = ({ userId, userEmail }: { userId: string, userEmail: string
     if (!currentFolder) return;
     setLoading(true);
     setSearchTerm(''); // Limpiar búsqueda al cambiar de carpeta
+
+    if (currentFolder === 'root') {
+      const virtualFiles: FileItem[] = rootFolders.map(folder => ({
+        id: folder.id,
+        name: folder.name,
+        mimeType: 'application/vnd.google-apps.folder',
+        modifiedTime: new Date().toISOString()
+      }));
+      setFiles(virtualFiles);
+      setLoading(false);
+      return;
+    }
+
     fetch(`/api/folders/${currentFolder}${userName ? `?userName=${encodeURIComponent(userName)}` : ''}`)
       .then(res => res.json())
       .then(async data => {
@@ -81,7 +100,7 @@ const FileExplorer = ({ userId, userEmail }: { userId: string, userEmail: string
         console.error('Error fetching folder:', err);
         setLoading(false);
       });
-  }, [currentFolder, userName]);
+  }, [currentFolder, userName, rootFolders]);
 
   const handleFolderClick = (folder: FileItem) => {
     setCurrentFolder(folder.id);
@@ -168,27 +187,30 @@ const FileExplorer = ({ userId, userEmail }: { userId: string, userEmail: string
               <Breadcrumb breadcrumb={breadcrumb} onClick={handleBreadcrumbClick} />
             </div>
 
-            <div style={{
-              marginLeft: 'auto',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '8px 12px',
-              border: '1px solid var(--border-color)',
-              borderRadius: '4px',
-              fontSize: '0.85rem',
-              minWidth: '150px',
-              flex: 1,
-              maxWidth: '300px'
-            }}>
-              <Icon name="search" size={16} className="text-neutral-400" />
-              <input
-                type="text"
-                placeholder="Buscar..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                style={{ background: 'transparent', outline: 'none', border: 'none', color: 'inherit', width: '100%' }}
-              />
+            <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '8px 12px',
+                border: '1px solid var(--border-color)',
+                borderRadius: '4px',
+                fontSize: '0.85rem',
+                minWidth: '150px',
+                flex: 1,
+                maxWidth: '300px'
+              }}>
+                <Icon name="search" size={16} className="text-neutral-400" />
+                <input
+                  type="text"
+                  placeholder="Buscar..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  style={{ background: 'transparent', outline: 'none', border: 'none', color: 'inherit', width: '100%' }}
+                />
+              </div>
+
+              <AvatarMenu userEmail={userEmail} />
             </div>
           </div>
 

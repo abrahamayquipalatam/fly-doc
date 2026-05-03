@@ -236,6 +236,7 @@ const NavigationSidebar: React.FC<NavigationSidebarProps> = ({ currentFolderId, 
                 </div>
             )}
 
+            {/*
             {(!isCollapsed && !isMobile) ?
                 <div style={{ marginTop: 'auto', padding: '16px 20px' }}>
                     <button
@@ -279,6 +280,7 @@ const NavigationSidebar: React.FC<NavigationSidebarProps> = ({ currentFolderId, 
                     </button>
                 </div>
             }
+            */}
         </aside>
     );
 };
