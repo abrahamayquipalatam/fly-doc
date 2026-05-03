@@ -6,9 +6,10 @@ import { Icon } from './Icon';
 
 interface AvatarMenuProps {
   userEmail: string;
+  userName?: string;
 }
 
-const AvatarMenu: React.FC<AvatarMenuProps> = ({ userEmail }) => {
+const AvatarMenu: React.FC<AvatarMenuProps> = ({ userEmail, userName }) => {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -49,7 +50,7 @@ const AvatarMenu: React.FC<AvatarMenuProps> = ({ userEmail }) => {
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '8px',
+          gap: '12px',
           background: 'transparent',
           border: 'none',
           cursor: 'pointer',
@@ -69,9 +70,14 @@ const AvatarMenu: React.FC<AvatarMenuProps> = ({ userEmail }) => {
             <Icon name="user" size={16} />
           </div>
         )}
-        <span style={{ fontSize: '0.9rem', fontWeight: 500 }} className="hide-on-mobile">
-          {userEmail}
-        </span>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textAlign: 'left' }} className="hide-on-mobile">
+          <span style={{ fontSize: '0.95rem', fontWeight: 400, color: '#000' }}>
+            {userName || 'Usuario'}
+          </span>
+          <span style={{ fontSize: '0.75rem', fontWeight: 400, color: '#6b7280' }}>
+            {userEmail}
+          </span>
+        </div>
         <Icon name="chevron-down" size={16} style={{ color: 'var(--text-secondary)' }} />
       </button>
 
@@ -85,43 +91,51 @@ const AvatarMenu: React.FC<AvatarMenuProps> = ({ userEmail }) => {
           border: '1px solid var(--border-color, #e5e7eb)',
           borderRadius: '8px',
           padding: '8px 0px',
-          minWidth: '180px',
+          minWidth: '220px',
           zIndex: 50,
           display: 'flex',
           flexDirection: 'column',
-          gap: '16px'
+          boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'
         }}>
           <div className="show-on-mobile" style={{
-            fontSize: '0.85rem',
-            fontWeight: 500,
+            padding: '12px 20px',
             borderBottom: '1px solid var(--border-color, #e5e7eb)',
-            paddingBottom: '12px',
-            wordBreak: 'break-all',
-            color: 'var(--text-primary)'
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '2px'
           }}>
-            {userEmail}
+            <div style={{ fontSize: '0.9rem', fontWeight: 400, color: '#000', wordBreak: 'break-word' }}>
+              {userName || 'Usuario'}
+            </div>
+            <div style={{ fontSize: '0.75rem', color: '#6b7280', wordBreak: 'break-all' }}>
+              {userEmail}
+            </div>
           </div>
-          <button
-            onClick={handleLogout}
-            style={{
-              width: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'flex-start',
-              gap: '12px',
-              padding: '10px 20px',
-              borderRadius: '6px',
-              color: '#ff4d4d',
-              background: 'transparent',
-              fontSize: '0.85rem',
-              fontWeight: 600,
-              transition: 'all 0.2s',
-              cursor: 'pointer'
-            }}
-          >
-            <Icon name="logout" size={20} />
-            Cerrar Sesión
-          </button>
+          <div style={{ padding: '4px' }}>
+            <button
+              onClick={handleLogout}
+              style={{
+                width: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'flex-start',
+                gap: '12px',
+                padding: '10px 16px',
+                borderRadius: '6px',
+                color: '#ef4444',
+                background: 'transparent',
+                border: 'none',
+                fontSize: '0.85rem',
+                fontWeight: 600,
+                transition: 'all 0.2s',
+                cursor: 'pointer'
+              }}
+              className="win11-hover"
+            >
+              <Icon name="logout" size={20} />
+              Cerrar Sesión
+            </button>
+          </div>
         </div>
       )}
       <style dangerouslySetInnerHTML={{
@@ -139,3 +153,4 @@ const AvatarMenu: React.FC<AvatarMenuProps> = ({ userEmail }) => {
 };
 
 export default AvatarMenu;
+

@@ -210,7 +210,7 @@ const FileExplorer = ({ userId, userEmail }: { userId: string, userEmail: string
                 />
               </div>
 
-              <AvatarMenu userEmail={userEmail} />
+              <AvatarMenu userEmail={userEmail} userName={userName} />
             </div>
           </div>
 
