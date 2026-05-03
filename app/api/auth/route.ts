@@ -4,10 +4,14 @@ import { sheets } from '../../../lib/google-drive';
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, password } = await request.json();
+    const { email } = await request.json();
 
-    if (!email || !password) {
-      return NextResponse.json({ error: 'Email and password are required' }, { status: 400 });
+    if (!email) {
+      return NextResponse.json({ error: 'Email is required' }, { status: 400 });
+    }
+    
+    if (!email.toLowerCase().endsWith('@latam.com')) {
+      return NextResponse.json({ error: 'Acceso denegado: solo correos @latam.com permitidos.' }, { status: 403 });
     }
 
     // Read columns A:D from BD sheet in the AUTH spreadsheet
@@ -20,8 +24,8 @@ export async function POST(request: NextRequest) {
     // skip header row if present
     for (let i = 1; i < rows.length; i++) {
         // NOMBRES Y APELLIDOS	CORREO	FLOTA	CONTRASEÑA
-      const [name, rowEmail, flota, rowPassword] = rows[i];
-      if (rowEmail?.toLowerCase() === email.toLowerCase() && rowPassword?.toString() === password?.toString()) {
+      const [name, rowEmail, flota] = rows[i];
+      if (rowEmail?.toLowerCase() === email.toLowerCase()) {
         const folderId = FLOTA_FOLDER_IDS[flota];
         if (!folderId) {
             return NextResponse.json({ error: 'Unknown flota for user' }, { status: 500 });
