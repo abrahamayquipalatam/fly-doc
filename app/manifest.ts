@@ -7,13 +7,20 @@ export default function manifest(): MetadataRoute.Manifest {
     description: 'Explorador de archivos tipo Windows 11 para Google Drive',
     start_url: '/',
     display: 'standalone',
-    background_color: '#ffffff',
-    theme_color: '#000000',
+    background_color: '#2A0087',
+    theme_color: '#2A0087',
     icons: [
       {
         src: '/icon.png',
         sizes: 'any',
         type: 'image/png',
+        purpose: 'maskable',
+      },
+      {
+        src: '/icon.png',
+        sizes: 'any',
+        type: 'image/png',
+        purpose: 'any',
       },
     ],
   }
