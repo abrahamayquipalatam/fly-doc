@@ -36,12 +36,12 @@ export default function Login({ onLoginSuccess }: LoginProps) {
     return () => {
       if (subscription) subscription.unsubscribe();
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleBackendAuth = async (email: string) => {
     setLoading(true);
-    
+
     if (!email.toLowerCase().endsWith('@latam.com')) {
       setError('Acceso denegado: solo correos @latam.com permitidos.');
       await supabase.auth.signOut();
@@ -106,10 +106,10 @@ export default function Login({ onLoginSuccess }: LoginProps) {
       fontFamily: '"Trebuchet MS", "Lucida Sans Unicode", "Lucida Grande", "Lucida Sans", Arial, sans-serif'
     }}>
       <div style={{
-        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+        backgroundColor: 'rgba(255, 255, 255)',
         backdropFilter: 'blur(12px)',
         borderRadius: '8px',
-        padding: '52px 40px',
+        padding: '45px 50px',
         width: '100%',
         maxWidth: '440px',
         display: 'flex',
@@ -120,17 +120,8 @@ export default function Login({ onLoginSuccess }: LoginProps) {
         position: 'relative',
         overflow: 'hidden'
       }}>
-        <div style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: '6px',
-          background: 'linear-gradient(90deg, #E8114B 0%, #1B365D 100%)'
-        }} />
-
-        <div style={{ marginBottom: '30px', textAlign: 'center' }}>
-          <Image src={logo} alt="FlyDoc Logo" height={56} style={{ objectFit: 'contain' }} />
+        <div style={{ marginBottom: '10px', textAlign: 'center' }}>
+          <Image src={logo} alt="FlyDoc Logo" height={80} style={{ objectFit: 'contain' }} />
           <p style={{ fontSize: '1rem', color: '#4b5563', marginTop: '10px' }}>Gestiona tus documentos con un solo clic</p>
         </div>
 
@@ -160,7 +151,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: '14px',
+            gap: '8px',
             backgroundColor: 'white',
             color: '#1f2937',
             padding: '16px 32px',
@@ -221,7 +212,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
             100% { transform: rotate(360deg); }
           }
         `}</style>
-        <div style={{ marginTop: '24px', fontSize: '0.75rem', color: '#9ca3af', textAlign: 'center', fontWeight: '500' }}>
+        <div style={{ marginTop: '16px', fontSize: '0.75rem', color: '#9ca3af', textAlign: 'center', fontWeight: '500' }}>
           &copy; 2026 FlyDoc Portal &sdot; Todos los derechos reservados.
         </div>
       </div>
