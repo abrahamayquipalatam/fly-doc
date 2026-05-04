@@ -37,8 +37,15 @@ const TreeItem: React.FC<{
     const isFolder = item.mimeType === 'application/vnd.google-apps.folder';
     const isSelected = currentFolderId === item.id;
 
-    const toggleExpand = async (e: React.MouseEvent) => {
-        e.stopPropagation();
+    // Auto-expand if this item is selected or if we should show its children
+    useEffect(() => {
+        if (isSelected && !isExpanded) {
+            setIsExpanded(true);
+        }
+    }, [isSelected]);
+
+    const toggleExpand = async (e?: React.MouseEvent) => {
+        if (e) e.stopPropagation();
         if (!isFolder) return;
 
         const newExpanded = !isExpanded;
@@ -61,7 +68,7 @@ const TreeItem: React.FC<{
     const handleClick = () => {
         if (isFolder) {
             onFolderSelect(item.id, item.name, path);
-            if (!isExpanded) toggleExpand({ stopPropagation: () => { } } as any);
+            if (!isExpanded) toggleExpand();
         } else if (onFileSelect) {
             onFileSelect(item);
         }
@@ -89,16 +96,26 @@ const TreeItem: React.FC<{
                 }}
             >
                 {isFolder && !isSidebarCollapsed && (
-                    <Icon
-                        name="chevron-right"
-                        size={10}
-                        onClick={toggleExpand}
+                    <div
+                        onClick={(e) => { e.stopPropagation(); toggleExpand(e); }}
                         style={{
-                            transform: isExpanded ? 'rotate(90deg)' : 'none',
-                            transition: 'transform 0.2s',
-                            opacity: 0.6
+                            padding: '4px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer'
                         }}
-                    />
+                    >
+                        <Icon
+                            name="chevron-right"
+                            size={10}
+                            style={{
+                                transform: isExpanded ? 'rotate(90deg)' : 'none',
+                                transition: 'transform 0.2s',
+                                opacity: 0.6
+                            }}
+                        />
+                    </div>
                 )}
                 <Win11Icon type={item.mimeType} size={18} />
                 {!isSidebarCollapsed && (
@@ -154,11 +171,7 @@ const NavigationSidebar: React.FC<NavigationSidebarProps> = ({ currentFolderId, 
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    const handleLogout = () => {
-        localStorage.removeItem('skyVaultUserEmail');
-        localStorage.removeItem('skyVaultUserId');
-        window.location.reload();
-    };
+    if (isMobile) return null;
 
     return (
         <aside className={`acrylic no-select transition-standard ${isCollapsed ? 'sidebar-collapsed' : ''}`} style={{
@@ -173,41 +186,30 @@ const NavigationSidebar: React.FC<NavigationSidebarProps> = ({ currentFolderId, 
             transition: 'width 0.3s ease'
         }}>
             <div className="sidebar-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: isCollapsed ? '8px 0 16px 0' : '8px 12px 16px 24px', flexWrap: 'nowrap' }}>
-                {isMobile && isCollapsed && (
-                    <div style={{
-                        padding: '8px',
-                        width: '100%',
-                        textAlign: 'left'
-                    }}>
-                        <Image src={LogoShort} alt="FlyDoc Logo" height={24} style={{ width: 'auto' }} />
-                    </div>
-                )}
                 {!isCollapsed && (
                     <div className="logo-container">
                         <Image src={Logo} alt="FlyDoc Logo" height={42} style={{ width: 'auto' }} />
                     </div>
                 )}
-                {!isMobile && (
-                    <button
-                        onClick={onToggleCollapse}
-                        className="win11-hover"
-                        style={{
-                            padding: '8px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            marginLeft: isCollapsed ? 'auto' : '0',
-                            marginRight: isCollapsed ? 'auto' : '0',
-                            color: '#cacacaff'
-                        }}
-                        title={isCollapsed ? "Expandir menu" : "Contraer menu"}
-                    >
-                        <Icon name={isCollapsed ? "menu" : "chevron-left"} size={20} />
-                    </button>
-                )}
+                <button
+                    onClick={onToggleCollapse}
+                    className="win11-hover"
+                    style={{
+                        padding: '8px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        marginLeft: isCollapsed ? 'auto' : '0',
+                        marginRight: isCollapsed ? 'auto' : '0',
+                        color: '#cacacaff'
+                    }}
+                    title={isCollapsed ? "Expandir menu" : "Contraer menu"}
+                >
+                    <Icon name={isCollapsed ? "menu" : "chevron-left"} size={20} />
+                </button>
             </div>
 
-            {!isCollapsed && !isMobile && (
+            {!isCollapsed && (
                 <div className="sidebar-label" style={{
                     color: 'var(--text-secondary)',
                     fontSize: '11px',
@@ -219,9 +221,13 @@ const NavigationSidebar: React.FC<NavigationSidebarProps> = ({ currentFolderId, 
                 </div>
             )}
 
-            {!isMobile && (
-                <div style={{ display: 'flex', flexDirection: 'column', padding: isCollapsed ? '0 8px' : '0 16px 8px 24px' }}>
-                    {rootFolders.map((folder) => (
+            <div style={{ display: 'flex', flexDirection: 'column', padding: isCollapsed ? '0 8px' : '0 16px 8px 24px' }}>
+                {rootFolders.map((folder) => {
+                    const basePath = rootFolders.length > 1 
+                        ? [{ id: 'root', name: 'Inicio' }, { id: folder.id, name: folder.name }]
+                        : [{ id: folder.id, name: folder.name }];
+                        
+                    return (
                         <TreeItem
                             key={folder.id}
                             item={{ id: folder.id, name: folder.name, mimeType: 'application/vnd.google-apps.folder' }}
@@ -230,60 +236,13 @@ const NavigationSidebar: React.FC<NavigationSidebarProps> = ({ currentFolderId, 
                             onFolderSelect={onFolderSelect}
                             onFileSelect={onFileSelect}
                             isSidebarCollapsed={isCollapsed}
-                            path={[{ id: folder.id, name: folder.name }]}
+                            path={basePath}
                         />
-                    ))}
-                </div>
-            )}
-
-            {/*
-            {(!isCollapsed && !isMobile) ?
-                <div style={{ marginTop: 'auto', padding: '16px 20px' }}>
-                    <button
-                        onClick={handleLogout}
-                        className="win11-hover"
-                        style={{
-                            width: '100%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: isCollapsed ? 'center' : 'flex-start',
-                            gap: '12px',
-                            padding: '10px 20px',
-                            borderRadius: '6px',
-                            color: '#ff4d4d',
-                            border: '1px solid #ff4d4d',
-                            background: 'transparent',
-                            fontSize: '0.85rem',
-                            fontWeight: 600,
-                            transition: 'all 0.2s'
-                        }}
-                    >
-                        <Icon name="logout" size={20} />
-                        Cerrar Sesión
-                    </button>
-                </div> :
-                <div style={{ marginTop: 'auto', padding: '16px 20px' }}>
-                    <button
-                        onClick={handleLogout}
-                        className="win11-hover"
-                        style={{
-                            padding: '1px 2px',
-                            color: '#ff4d4d',
-                            border: '1px solid #ff4d4d',
-                            background: 'transparent',
-                            fontSize: '0.85rem',
-                            fontWeight: 600,
-                            transition: 'all 0.2s'
-                        }}
-                    >
-                        <Icon name="logout" size={20} />
-                    </button>
-                </div>
-            }
-            */}
+                    );
+                })}
+            </div>
         </aside>
     );
 };
-
 export default NavigationSidebar;
 

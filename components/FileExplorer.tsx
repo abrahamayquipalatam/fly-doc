@@ -148,34 +148,37 @@ const FileExplorer = ({ userId, userEmail }: { userId: string, userEmail: string
 
   return (
     <div style={{ display: 'flex', flex: 1, height: '100%', overflow: 'hidden', position: 'relative' }}>
-      <NavigationSidebar
-        currentFolderId={currentFolder}
-        rootFolders={rootFolders}
-        onFolderSelect={handleSidebarFolderSelect}
-        onFileSelect={(file: any) => { setShowToast(true); setPreviewFile(file as any); }}
-        isCollapsed={sidebarCollapsed}
-        onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
-      />
 
-      <main style={{
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        background: 'var(--explorer-bg)',
-        position: 'relative',
-        overflow: 'hidden',
-        padding: '20px 0px',
+        <NavigationSidebar
+          currentFolderId={currentFolder}
+          rootFolders={rootFolders}
+          onFolderSelect={handleSidebarFolderSelect}
+          onFileSelect={(file: any) => { setShowToast(true); setPreviewFile(file as any); }}
+          isCollapsed={sidebarCollapsed}
+          onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+        />
 
-      }}>
-        {/* Barra de herramientas superior estilo Win11 */}
-        <header style={{
-          padding: '12px 24px',
-          borderBottom: '1px solid var(--border-color)',
+        <main style={{
+          flex: 1,
           display: 'flex',
           flexDirection: 'column',
-          gap: '12px'
+          background: 'var(--explorer-bg)',
+          position: 'relative',
+          overflow: 'hidden',
+          padding: '0px 0px', // Removed top padding to let breadcrumb sit at the top
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          <div className="breadcrumb-mobile">
+            <Breadcrumb breadcrumb={breadcrumb} onClick={handleBreadcrumbClick} />
+          </div>
+
+          {/* Barra de herramientas superior estilo Win11 */}
+          <header style={{
+            padding: '12px 24px',
+            borderBottom: '1px solid var(--border-color)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px'
+          }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <button
                 onClick={() => handleBreadcrumbClick(Math.max(0, breadcrumb.length - 2))}
@@ -184,113 +187,136 @@ const FileExplorer = ({ userId, userEmail }: { userId: string, userEmail: string
               >
                 <Icon name="arrow-left" size={20} />
               </button>
-              <Breadcrumb breadcrumb={breadcrumb} onClick={handleBreadcrumbClick} />
-            </div>
 
-            <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '16px' }}>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                padding: '8px 12px',
-                border: '1px solid var(--border-color)',
-                borderRadius: '4px',
-                fontSize: '0.85rem',
-                minWidth: '150px',
-                flex: 1,
-                maxWidth: '300px'
-              }}>
-                <Icon name="search" size={16} className="text-neutral-400" />
-                <input
-                  type="text"
-                  placeholder="Buscar..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  style={{ background: 'transparent', outline: 'none', border: 'none', color: 'inherit', width: '100%' }}
-                />
+              <div className="breadcrumb-desktop">
+                <Breadcrumb breadcrumb={breadcrumb} onClick={handleBreadcrumbClick} />
               </div>
 
-              <AvatarMenu userEmail={userEmail} userName={userName} />
+              <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '8px 12px',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: '4px',
+                  fontSize: '0.85rem',
+                  minWidth: '150px',
+                  flex: 1,
+                  maxWidth: '300px'
+                }}>
+                  <Icon name="search" size={16} className="text-neutral-400" />
+                  <input
+                    type="text"
+                    placeholder="Buscar..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    style={{ background: 'transparent', outline: 'none', border: 'none', color: 'inherit', width: '100%' }}
+                  />
+                </div>
+
+                <AvatarMenu userEmail={userEmail} userName={userName} />
+              </div>
             </div>
-          </div>
 
-          <div style={{ display: 'flex', gap: '8px', marginTop: '4px', overflowX: 'auto', paddingBottom: '4px' }}>
-            <button
-              onClick={() => setViewMode('list')}
-              className={`win11-hover ${viewMode === 'list' ? 'selected' : ''}`}
-              style={{
-                padding: '6px 12px',
-                borderRadius: '4px',
-                fontSize: '0.85rem',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                background: viewMode === 'list' ? 'var(--selected-bg)' : 'transparent',
-                border: '1px solid ' + (viewMode === 'list' ? 'var(--accent-color)' : 'transparent'),
-                whiteSpace: 'nowrap'
-              }}
-            >
-              <Icon name="list" size={16} /> Lista
-            </button>
-            <button
-              onClick={() => setViewMode('grid')}
-              className={`win11-hover ${viewMode === 'grid' ? 'selected' : ''}`}
-              style={{
-                padding: '6px 12px',
-                borderRadius: '4px',
-                fontSize: '0.85rem',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                background: viewMode === 'grid' ? 'var(--selected-bg)' : 'transparent',
-                border: '1px solid ' + (viewMode === 'grid' ? 'var(--accent-color)' : 'transparent'),
-                whiteSpace: 'nowrap'
-              }}
-            >
-              <Icon name="layout-grid" size={16} /> Cuadrícula
-            </button>
-          </div>
-        </header>
+            <div style={{ display: 'flex', gap: '8px', marginTop: '4px', overflowX: 'auto', paddingBottom: '4px' }}>
+              <button
+                onClick={() => setViewMode('list')}
+                className={`win11-hover ${viewMode === 'list' ? 'selected' : ''}`}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: '4px',
+                  fontSize: '0.85rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  background: viewMode === 'list' ? 'var(--selected-bg)' : 'transparent',
+                  border: '1px solid ' + (viewMode === 'list' ? 'var(--accent-color)' : 'transparent'),
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                <Icon name="list" size={16} /> Lista
+              </button>
+              <button
+                onClick={() => setViewMode('grid')}
+                className={`win11-hover ${viewMode === 'grid' ? 'selected' : ''}`}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: '4px',
+                  fontSize: '0.85rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  background: viewMode === 'grid' ? 'var(--selected-bg)' : 'transparent',
+                  border: '1px solid ' + (viewMode === 'grid' ? 'var(--accent-color)' : 'transparent'),
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                <Icon name="layout-grid" size={16} /> Cuadrícula
+              </button>
+            </div>
+          </header>
 
-        {loading ? (
-          <div className="flex-center" style={{ flex: 1 }}>
-            <div className="animate-spin" style={{
-              width: '40px',
-              height: '40px',
-              border: '4px solid var(--accent-color)',
-              borderTopColor: 'transparent',
-              borderRadius: '50%'
-            }}></div>
-          </div>
-        ) : (
-          <FileList
-            files={files.filter(f => f.name.toLowerCase().includes(searchTerm.toLowerCase()))}
-            onFolderClick={handleFolderClick}
-            onFileClick={(file: FileItem) => { setShowToast(true); setPreviewFile(file); }}
-            onDownload={handleDownload}
-            userId={userId}
-            userName={userName}
-            viewMode={viewMode}
-          />
-        )}
+          {loading ? (
+            <div className="flex-center" style={{ flex: 1 }}>
+              <div className="animate-spin" style={{
+                width: '40px',
+                height: '40px',
+                border: '4px solid var(--accent-color)',
+                borderTopColor: 'transparent',
+                borderRadius: '50%'
+              }}></div>
+            </div>
+          ) : (
+            <FileList
+              files={files.filter(f => f.name.toLowerCase().includes(searchTerm.toLowerCase()))}
+              onFolderClick={handleFolderClick}
+              onFileClick={(file: FileItem) => { setShowToast(true); setPreviewFile(file); }}
+              onDownload={handleDownload}
+              userId={userId}
+              userName={userName}
+              viewMode={viewMode}
+            />
+          )}
 
-        {previewFile && (
-          <PreviewModal
-            file={previewFile}
-            onClose={() => { setPreviewFile(null); setShowToast(false); }}
-            onDownload={() => handleDownload(previewFile)}
-            userId={userId}
-            userName={userName}
-            onLoadComplete={() => setShowToast(false)}
-          />
-        )}
+          {previewFile && (
+            <PreviewModal
+              file={previewFile}
+              onClose={() => { setPreviewFile(null); setShowToast(false); }}
+              onDownload={() => handleDownload(previewFile)}
+              userId={userId}
+              userName={userName}
+              onLoadComplete={() => setShowToast(false)}
+            />
+          )}
 
-        <Toast isVisible={showToast} message="Obteniendo archivo..." />
-      </main>
+          <Toast isVisible={showToast} message="Obteniendo archivo..." />
+        </main>
       <style dangerouslySetInnerHTML={{
         __html: `
+        @media (max-width: 768px) {
+          aside {
+            display: none !important;
+          }
+        }
+        
+        /* Breadcrumb Desktop vs Mobile logic */
+        @media (min-width: 1025px) {
+          .breadcrumb-mobile {
+            display: none !important;
+          }
+          .breadcrumb-desktop {
+            display: block !important;
+          }
+        }
+        
         @media (max-width: 1024px) {
-          /* Responsive updates if needed */
+          .breadcrumb-mobile {
+            display: block !important;
+          }
+          .breadcrumb-desktop {
+            display: none !important;
+          }
         }
       `}} />
     </div>
