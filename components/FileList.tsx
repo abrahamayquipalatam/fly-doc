@@ -16,12 +16,10 @@ interface FileListProps {
   onFolderClick: (file: FileItem) => void;
   onFileClick: (file: FileItem) => void;
   onDownload: (file: FileItem) => void;
-  userId: string;
-  userName?: string;
   viewMode?: 'list' | 'grid';
 }
 
-const FileList = ({ files, onFolderClick, onFileClick, onDownload, userId, userName, viewMode = 'list' }: FileListProps) => {
+const FileList = ({ files, onFolderClick, onFileClick, onDownload, viewMode = 'list' }: FileListProps) => {
   const formatSize = (size?: string) => {
     if (!size) return '---';
     const bytes = parseInt(size);

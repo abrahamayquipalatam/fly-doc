@@ -29,7 +29,12 @@ export async function POST(request: NextRequest) {
     const monthNames = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sept', 'oct', 'nov', 'dic'];
     const currentMonthStr = `${monthNames[now.getMonth()]}-${now.getFullYear().toString().slice(-2)}`;
     
-    const monthColIndex = headerRow.findIndex((h: any) => h?.toString().toLowerCase().trim() === currentMonthStr.toLowerCase());
+    let monthColIndex = headerRow.findIndex((h: any) => h?.toString().toLowerCase().trim() === currentMonthStr.toLowerCase());
+    
+    // Fallback calculation based on User's mapping: F (index 5) is may-26
+    if (monthColIndex === -1) {
+        monthColIndex = 5 + (now.getFullYear() - 2026) * 12 + (now.getMonth() - 4);
+    }
 
     let userRowIndex = -1;
     let name = '', rowEmail = '', flota = '', rango = '';
@@ -50,7 +55,8 @@ export async function POST(request: NextRequest) {
     }
 
     if (userRowIndex !== -1) {
-        if (monthColIndex !== -1) {
+        // Update the CONTROL sheet with an "X" for the current month
+        if (monthColIndex >= 0) {
             let targetRow = [...rows[userRowIndex]];
             while(targetRow.length <= monthColIndex) targetRow.push("");
             targetRow[monthColIndex] = "X";

@@ -20,7 +20,7 @@ interface FileItem {
   webViewLink?: string;
 }
 
-const FileExplorer = ({ userId, userEmail }: { userId: string, userEmail: string }) => {
+const FileExplorer = ({ userEmail }: { userEmail: string }) => {
   const [currentFolder, setCurrentFolder] = useState<string>('');
   const [files, setFiles] = useState<FileItem[]>([]);
   const [breadcrumb, setBreadcrumb] = useState<{ id: string; name: string }[]>([]);
@@ -78,7 +78,7 @@ const FileExplorer = ({ userId, userEmail }: { userId: string, userEmail: string
       return;
     }
 
-    fetch(`/api/folders/${currentFolder}${userName ? `?userName=${encodeURIComponent(userName)}` : ''}`)
+    fetch(`/api/folders/${currentFolder}`)
       .then(res => res.json())
       .then(async data => {
         const fetched = data.files || [];
@@ -117,7 +117,7 @@ const FileExplorer = ({ userId, userEmail }: { userId: string, userEmail: string
   const handleDownload = (file: FileItem) => {
     // Initiates download via API route
     setShowToast(true);
-    window.location.href = `/api/files/${file.id}/download?userId=${userId}${userName ? `&userName=${encodeURIComponent(userName)}` : ''}`;
+    window.location.href = `/api/files/${file.id}/download`;
     // Hide toast after a reasonable time for download to start
     setTimeout(() => setShowToast(false), 3000);
   };
@@ -274,8 +274,6 @@ const FileExplorer = ({ userId, userEmail }: { userId: string, userEmail: string
               onFolderClick={handleFolderClick}
               onFileClick={(file: FileItem) => { setShowToast(true); setPreviewFile(file); }}
               onDownload={handleDownload}
-              userId={userId}
-              userName={userName}
               viewMode={viewMode}
             />
           )}
@@ -285,8 +283,6 @@ const FileExplorer = ({ userId, userEmail }: { userId: string, userEmail: string
               file={previewFile}
               onClose={() => { setPreviewFile(null); setShowToast(false); }}
               onDownload={() => handleDownload(previewFile)}
-              userId={userId}
-              userName={userName}
               onLoadComplete={() => setShowToast(false)}
             />
           )}

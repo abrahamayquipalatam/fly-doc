@@ -4,12 +4,7 @@ import { drive } from '../../../../../lib/google-drive';
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id: fileId } = await params;
   const { searchParams } = new URL(request.url);
-  const userId = searchParams.get('userId');
   const preview = searchParams.get('preview') === 'true';
-
-  if (!userId) {
-    return NextResponse.json({ error: 'User ID required' }, { status: 400 });
-  }
 
   try {
     // Resolve shortcut if it is one

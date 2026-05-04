@@ -15,12 +15,10 @@ interface PreviewModalProps {
   file: FileItem | null;
   onClose: () => void;
   onDownload: () => void;
-  userId: string;
-  userName?: string;
   onLoadComplete?: () => void;
 }
 
-const PreviewModal = ({ file, onClose, onDownload, userId, userName, onLoadComplete }: PreviewModalProps) => {
+const PreviewModal = ({ file, onClose, onDownload, onLoadComplete }: PreviewModalProps) => {
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -38,7 +36,7 @@ const PreviewModal = ({ file, onClose, onDownload, userId, userName, onLoadCompl
   const isDoc = file.mimeType.includes('word') || file.mimeType.includes('document');
 
   const getPreviewUrl = (file: FileItem) => {
-    const base = `/api/files/${file.id}/download?userId=${userId}${userName ? `&userName=${encodeURIComponent(userName)}` : ''}`;
+    const base = `/api/files/${file.id}/download`;
     if (isPDF || isDoc) {
       // For PDFs and Docs, we use the Google Viewer to only load the first few pages if possible
       // or append a fragment for PDF viewer
