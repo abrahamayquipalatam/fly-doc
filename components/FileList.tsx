@@ -48,7 +48,7 @@ const FileList = ({ files, onFolderClick, onFileClick, onDownload, userId, userN
     const bIsFolder = isFolder(b);
     if (aIsFolder && !bIsFolder) return -1;
     if (!aIsFolder && bIsFolder) return 1;
-    return a.name.localeCompare(b.name);
+    return a.name.localeCompare(b.name, undefined, { sensitivity: 'base', numeric: true });
   });
 
   if (viewMode === 'grid') {

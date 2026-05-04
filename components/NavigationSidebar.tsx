@@ -56,7 +56,18 @@ const TreeItem: React.FC<{
             try {
                 const res = await fetch(`/api/folders/${item.id}`);
                 const data = await res.json();
-                setChildren(data.files || []);
+                const fetchedFiles = data.files || [];
+                
+                // Sort: Folders first, then alphabetically
+                const sorted = [...fetchedFiles].sort((a, b) => {
+                    const aIsFolder = a.mimeType === 'application/vnd.google-apps.folder';
+                    const bIsFolder = b.mimeType === 'application/vnd.google-apps.folder';
+                    if (aIsFolder && !bIsFolder) return -1;
+                    if (!aIsFolder && bIsFolder) return 1;
+                    return a.name.localeCompare(b.name, undefined, { sensitivity: 'base', numeric: true });
+                });
+                
+                setChildren(sorted);
             } catch (err) {
                 console.error('Error fetching tree children:', err);
             } finally {
@@ -222,24 +233,26 @@ const NavigationSidebar: React.FC<NavigationSidebarProps> = ({ currentFolderId, 
             )}
 
             <div style={{ display: 'flex', flexDirection: 'column', padding: isCollapsed ? '0 8px' : '0 16px 8px 24px' }}>
-                {rootFolders.map((folder) => {
-                    const basePath = rootFolders.length > 1 
-                        ? [{ id: 'root', name: 'Inicio' }, { id: folder.id, name: folder.name }]
-                        : [{ id: folder.id, name: folder.name }];
-                        
-                    return (
-                        <TreeItem
-                            key={folder.id}
-                            item={{ id: folder.id, name: folder.name, mimeType: 'application/vnd.google-apps.folder' }}
-                            level={0}
-                            currentFolderId={currentFolderId}
-                            onFolderSelect={onFolderSelect}
-                            onFileSelect={onFileSelect}
-                            isSidebarCollapsed={isCollapsed}
-                            path={basePath}
-                        />
-                    );
-                })}
+                {[...rootFolders]
+                    .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base', numeric: true }))
+                    .map((folder) => {
+                        const basePath = rootFolders.length > 1 
+                            ? [{ id: 'root', name: 'Inicio' }, { id: folder.id, name: folder.name }]
+                            : [{ id: folder.id, name: folder.name }];
+                            
+                        return (
+                            <TreeItem
+                                key={folder.id}
+                                item={{ id: folder.id, name: folder.name, mimeType: 'application/vnd.google-apps.folder' }}
+                                level={0}
+                                currentFolderId={currentFolderId}
+                                onFolderSelect={onFolderSelect}
+                                onFileSelect={onFileSelect}
+                                isSidebarCollapsed={isCollapsed}
+                                path={basePath}
+                            />
+                        );
+                    })}
             </div>
         </aside>
     );

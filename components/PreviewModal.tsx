@@ -157,7 +157,7 @@ const PreviewModal = ({ file, onClose, onDownload, userId, userName, onLoadCompl
                 overflow: 'hidden',
                 textOverflow: 'ellipsis'
               }}>
-                Previsualización (Solo primeras 3 páginas)
+                Previsualización
               </span>
             </div>
           </div>
@@ -170,6 +170,7 @@ const PreviewModal = ({ file, onClose, onDownload, userId, userName, onLoadCompl
             flexShrink: 0
           }}>
             {/* Download */}
+            {/*
             <button
               onClick={onDownload}
               className="win11-hover"
@@ -192,6 +193,7 @@ const PreviewModal = ({ file, onClose, onDownload, userId, userName, onLoadCompl
               <Icon name="download" size={18} />
               <span className="hide-mobile">DESCARGAR Y REGISTRAR</span>
             </button>
+            */}
 
             {/* Close */}
             <button

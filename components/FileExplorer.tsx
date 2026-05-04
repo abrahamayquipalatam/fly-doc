@@ -39,7 +39,8 @@ const FileExplorer = ({ userId, userEmail }: { userId: string, userEmail: string
       .then(res => res.json())
       .then(data => {
         if (data.folders && data.folders.length > 0) {
-          setRootFolders(data.folders);
+          const sortedFolders = [...data.folders].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base', numeric: true }));
+          setRootFolders(sortedFolders);
           if (data.folders.length > 1) {
             setCurrentFolder('root');
             setBreadcrumb([{ id: 'root', name: 'Inicio' }]);
