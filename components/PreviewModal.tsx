@@ -40,11 +40,11 @@ const PreviewModal = ({ file, onClose, onDownload, onLoadComplete }: PreviewModa
     if (isPDF || isDoc) {
       // For PDFs and Docs, we use the Google Viewer to only load the first few pages if possible
       // or append a fragment for PDF viewer
-      const url = isPDF ? `${base}&preview=true#page=1-3` : `https://docs.google.com/viewer?srcid=${file.id}&pid=explorer&efh=false&cp=1-3&a=v&chrome=false&embedded=true`;
+      const url = isPDF ? `${base}?preview=true#page=1-3` : `https://docs.google.com/viewer?srcid=${file.id}&pid=explorer&efh=false&cp=1-3&a=v&chrome=false&embedded=true`;
       return url;
     }
     if (isImage || isVideo || isAudio) {
-      return `${base}&preview=true`;
+      return `${base}?preview=true`;
     }
     return `https://drive.google.com/file/d/${file.id}/preview`;
   };
