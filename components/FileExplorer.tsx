@@ -33,6 +33,7 @@ const FileExplorer = ({ userEmail }: { userEmail: string }) => {
   const [rootFolders, setRootFolders] = useState<{ id: string, name: string }[]>([]);
   const [flota, setFlota] = useState<string>('');
   const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('Obteniendo archivo...');
 
   // fetch user info once at startup
   useEffect(() => {
@@ -115,31 +116,58 @@ const FileExplorer = ({ userEmail }: { userEmail: string }) => {
     setCurrentFolder(newBreadcrumb[newBreadcrumb.length - 1].id);
   };
 
-  const handleDownload = (file: FileItem) => {
-    // Initiates download via API route
-    setShowToast(true);
+  const handleDownload = async (file: FileItem) => {
     const url = `/api/files/${file.id}/download`;
+    setToastMessage('Obteniendo archivo...');
+    setShowToast(true);
 
     if (isIOS()) {
-      // En iOS, usar el visor nativo y abrir en nueva pestaña para evitar bloqueos de PWA/Safari
-      const anchor = document.createElement('a');
-      anchor.href = url;
-      anchor.target = '_blank';
-      anchor.rel = 'noopener noreferrer';
-      document.body.appendChild(anchor);
-      anchor.click();
-      document.body.removeChild(anchor);
-    } else {
-      // Para otros dispositivos (Android, Windows), usamos un link temporal con atributo download
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', file.name);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      try {
+        if (navigator.share && navigator.canShare) {
+          const response = await fetch(url, { credentials: 'same-origin' });
+          if (!response.ok) {
+            throw new Error('No se pudo obtener el archivo para compartir');
+          }
+          const blob = await response.blob();
+          const sharedFile = new File([blob], file.name, { type: file.mimeType || 'application/octet-stream' });
+
+          if (navigator.canShare({ files: [sharedFile] })) {
+            setToastMessage('Abriendo el diálogo de compartir...');
+            await navigator.share({
+              files: [sharedFile],
+              title: file.name,
+              text: 'Comparte o guarda el archivo en tu dispositivo',
+            });
+          } else {
+            throw new Error('Web Share API no soporta archivos en este dispositivo');
+          }
+        } else {
+          throw new Error('Web Share API no disponible');
+        }
+      } catch (error) {
+        console.error('Error sharing file on iOS:', error);
+        setToastMessage('No se pudo compartir el archivo. Abriendo en el visor...');
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        anchor.target = '_blank';
+        anchor.rel = 'noopener noreferrer';
+        document.body.appendChild(anchor);
+        anchor.click();
+        document.body.removeChild(anchor);
+      } finally {
+        setTimeout(() => setShowToast(false), 4000);
+      }
+      return;
     }
 
-    // Hide toast after a reasonable time for download to start
+    // Para otros dispositivos (Android, Windows), usamos un link temporal con atributo download
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', file.name);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
     setTimeout(() => setShowToast(false), 3000);
   };
 
@@ -308,7 +336,7 @@ const FileExplorer = ({ userEmail }: { userEmail: string }) => {
             />
           )}
 
-          <Toast isVisible={showToast} message="Obteniendo archivo..." />
+          <Toast isVisible={showToast} message={toastMessage} />
         </main>
       <style dangerouslySetInnerHTML={{
         __html: `
