@@ -9,6 +9,7 @@ import Toast from './Toast';
 import { FLOTA_FOLDER_IDS } from '@/config/constants';
 import { Icon } from './Icon';
 import AvatarMenu from './AvatarMenu';
+import { isIOS } from '@/lib/utils';
 
 interface FileItem {
   id: string;
@@ -119,14 +120,15 @@ const FileExplorer = ({ userEmail }: { userEmail: string }) => {
     setShowToast(true);
     const url = `/api/files/${file.id}/download`;
 
-    // Detectar si es iOS (iPhone, iPad, iPod)
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
-                  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-
-    if (isIOS) {
-      // En iOS, window.location.href a veces no funciona para descargas o navega fuera de la PWA
-      // Abrir en una nueva pestaña permite que el visor nativo de iOS maneje el archivo
-      window.open(url, '_blank');
+    if (isIOS()) {
+      // En iOS, usar el visor nativo y abrir en nueva pestaña para evitar bloqueos de PWA/Safari
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.target = '_blank';
+      anchor.rel = 'noopener noreferrer';
+      document.body.appendChild(anchor);
+      anchor.click();
+      document.body.removeChild(anchor);
     } else {
       // Para otros dispositivos (Android, Windows), usamos un link temporal con atributo download
       const link = document.createElement('a');
