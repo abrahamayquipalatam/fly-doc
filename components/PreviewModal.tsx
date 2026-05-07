@@ -233,26 +233,53 @@ const PreviewModal = ({ file, onClose, onDownload, onLoadComplete }: PreviewModa
           }} />
         </div>
         {/* Preview Content */}
-        <div style={{ flex: 1, backgroundColor: 'var(--explorer-bg)', display: 'flex', justifyContent: 'center', alignItems: 'center', overflow: 'hidden', position: 'relative' }}>
+        <div style={{
+          flex: 1,
+          backgroundColor: isIOS() ? '#2c2c2c' : 'var(--explorer-bg)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          overflow: 'hidden',
+          position: 'relative',
+          padding: isIOS() ? '20px' : '0'
+        }}>
           {isImage ? (
             <img
               src={getPreviewUrl(file)}
               alt={file.name}
               onLoad={onLoadComplete}
-              style={{ maxWidth: '90%', maxHeight: '90%', objectFit: 'contain', background: 'white', padding: '10px', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }}
+              style={{
+                maxWidth: isIOS() ? '80%' : '90%',
+                maxHeight: isIOS() ? '80%' : '90%',
+                objectFit: 'contain',
+                background: 'white',
+                padding: '10px',
+                boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
+                borderRadius: '8px'
+              }}
             />
           ) : isVideo ? (
             <video
               controls
               autoPlay
               onLoadedData={onLoadComplete}
-              style={{ maxWidth: '100%', maxHeight: '100%' }}
+              style={{
+                maxWidth: isIOS() ? '80%' : '100%',
+                maxHeight: isIOS() ? '80%' : '100%',
+                borderRadius: '8px'
+              }}
             >
               <source src={getPreviewUrl(file)} type={file.mimeType} />
               Tu navegador no soporta la reproducción de video.
             </video>
           ) : isAudio ? (
-            <div style={{ padding: '40px', background: 'white', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+            <div style={{
+              padding: '40px',
+              background: 'white',
+              borderRadius: '12px',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+              maxWidth: isIOS() ? '80%' : '100%'
+            }}>
               <audio controls autoPlay onCanPlayThrough={onLoadComplete}>
                 <source src={getPreviewUrl(file)} type={file.mimeType} />
                 Tu navegador no soporta la reproducción de audio.
@@ -262,21 +289,29 @@ const PreviewModal = ({ file, onClose, onDownload, onLoadComplete }: PreviewModa
             <iframe
               src={getPreviewUrl(file)}
               onLoad={onLoadComplete}
-              width="100%"
-              height="100%"
+              width={isIOS() ? "80%" : "100%"}
+              height={isIOS() ? "80%" : "100%"}
               frameBorder="0"
               title={file.name}
-              style={{ background: 'white' }}
+              style={{
+                background: 'white',
+                borderRadius: '8px',
+                boxShadow: '0 10px 30px rgba(0,0,0,0.1)'
+              }}
             />
           ) : (
             <iframe
               src={getPreviewUrl(file)}
               onLoad={onLoadComplete}
-              width="100%"
-              height="100%"
+              width={isIOS() ? "80%" : "100%"}
+              height={isIOS() ? "80%" : "100%"}
               frameBorder="0"
               title={file.name}
-              style={{ background: 'white' }}
+              style={{
+                background: 'white',
+                borderRadius: '8px',
+                boxShadow: '0 10px 30px rgba(0,0,0,0.1)'
+              }}
             />
           )}
         </div>
