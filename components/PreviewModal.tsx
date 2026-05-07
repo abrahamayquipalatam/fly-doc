@@ -190,7 +190,7 @@ const PreviewModal = ({ file, onClose, onDownload, onLoadComplete }: PreviewModa
               }}
             >
               <Icon name="download" size={18} />
-              <span className="hide-mobile">DESCARGAR</span>
+              <span className="hide-mobile">Descargar</span>
             </button>
 
             {/* Close */}
@@ -235,13 +235,13 @@ const PreviewModal = ({ file, onClose, onDownload, onLoadComplete }: PreviewModa
         {/* Preview Content */}
         <div style={{
           flex: 1,
-          backgroundColor: isIOS() ? '#2c2c2c' : 'var(--explorer-bg)',
+          backgroundColor: isIOS() ? '#1e1e1e' : 'var(--explorer-bg)',
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
           overflow: 'hidden',
           position: 'relative',
-          padding: isIOS() ? '20px' : '0'
+          padding: 0
         }}>
           {isImage ? (
             <img
@@ -249,13 +249,11 @@ const PreviewModal = ({ file, onClose, onDownload, onLoadComplete }: PreviewModa
               alt={file.name}
               onLoad={onLoadComplete}
               style={{
-                maxWidth: isIOS() ? '80%' : '90%',
-                maxHeight: isIOS() ? '80%' : '90%',
+                maxWidth: '100%',
+                maxHeight: '100%',
                 objectFit: 'contain',
-                background: 'white',
-                padding: '10px',
-                boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
-                borderRadius: '8px'
+                boxShadow: isIOS() ? 'none' : '0 10px 30px rgba(0,0,0,0.1)',
+                borderRadius: isIOS() ? '0' : '8px'
               }}
             />
           ) : isVideo ? (
@@ -264,9 +262,9 @@ const PreviewModal = ({ file, onClose, onDownload, onLoadComplete }: PreviewModa
               autoPlay
               onLoadedData={onLoadComplete}
               style={{
-                maxWidth: isIOS() ? '80%' : '100%',
-                maxHeight: isIOS() ? '80%' : '100%',
-                borderRadius: '8px'
+                maxWidth: '100%',
+                maxHeight: '100%',
+                borderRadius: isIOS() ? '0' : '8px'
               }}
             >
               <source src={getPreviewUrl(file)} type={file.mimeType} />
@@ -274,11 +272,11 @@ const PreviewModal = ({ file, onClose, onDownload, onLoadComplete }: PreviewModa
             </video>
           ) : isAudio ? (
             <div style={{
-              padding: '40px',
+              padding: isIOS() ? '20px' : '40px',
               background: 'white',
               borderRadius: '12px',
               boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-              maxWidth: isIOS() ? '80%' : '100%'
+              maxWidth: '90%'
             }}>
               <audio controls autoPlay onCanPlayThrough={onLoadComplete}>
                 <source src={getPreviewUrl(file)} type={file.mimeType} />
@@ -289,28 +287,28 @@ const PreviewModal = ({ file, onClose, onDownload, onLoadComplete }: PreviewModa
             <iframe
               src={getPreviewUrl(file)}
               onLoad={onLoadComplete}
-              width={isIOS() ? "80%" : "100%"}
-              height={isIOS() ? "80%" : "100%"}
+              width="100%"
+              height="100%"
               frameBorder="0"
               title={file.name}
               style={{
                 background: 'white',
-                borderRadius: '8px',
-                boxShadow: '0 10px 30px rgba(0,0,0,0.1)'
+                borderRadius: isIOS() ? '0' : '8px',
+                boxShadow: isIOS() ? 'none' : '0 10px 30px rgba(0,0,0,0.1)'
               }}
             />
           ) : (
             <iframe
               src={getPreviewUrl(file)}
               onLoad={onLoadComplete}
-              width={isIOS() ? "80%" : "100%"}
-              height={isIOS() ? "80%" : "100%"}
+              width="100%"
+              height="100%"
               frameBorder="0"
               title={file.name}
               style={{
                 background: 'white',
-                borderRadius: '8px',
-                boxShadow: '0 10px 30px rgba(0,0,0,0.1)'
+                borderRadius: isIOS() ? '0' : '8px',
+                boxShadow: isIOS() ? 'none' : '0 10px 30px rgba(0,0,0,0.1)'
               }}
             />
           )}
