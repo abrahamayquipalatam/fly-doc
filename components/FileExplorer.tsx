@@ -123,39 +123,41 @@ const FileExplorer = ({ userEmail }: { userEmail: string }) => {
 
     if (isIOS()) {
       try {
-        if (navigator.share && navigator.canShare) {
-          const response = await fetch(url, { credentials: 'same-origin' });
-          if (!response.ok) {
-            throw new Error('No se pudo obtener el archivo para compartir');
-          }
-          const blob = await response.blob();
-          const sharedFile = new File([blob], file.name, { type: file.mimeType || 'application/octet-stream' });
-
-          if (navigator.canShare({ files: [sharedFile] })) {
-            setToastMessage('Abriendo el diálogo de compartir...');
-            await navigator.share({
-              files: [sharedFile],
-              title: file.name,
-              text: 'Comparte o guarda el archivo en tu dispositivo',
-            });
-          } else {
-            throw new Error('Web Share API no soporta archivos en este dispositivo');
-          }
-        } else {
-          throw new Error('Web Share API no disponible');
+        if (!navigator.share || !navigator.canShare) {
+          setToastMessage('Web Share API no disponible en este dispositivo iOS');
+          return;
         }
-      } catch (error) {
-        console.error('Error sharing file on iOS:', error);
-        setToastMessage('No se pudo compartir el archivo. Abriendo en el visor...');
-        const anchor = document.createElement('a');
-        anchor.href = url;
-        anchor.target = '_blank';
-        anchor.rel = 'noopener noreferrer';
-        document.body.appendChild(anchor);
-        anchor.click();
-        document.body.removeChild(anchor);
+
+        const response = await fetch(url, { credentials: 'same-origin' });
+        if (!response.ok) {
+          throw new Error('No se pudo obtener el archivo para compartir');
+        }
+
+        const blob = await response.blob();
+        const sharedFile = new File([blob], file.name, { type: file.mimeType || 'application/octet-stream' });
+
+        if (!navigator.canShare({ files: [sharedFile] })) {
+          setToastMessage('Web Share API no soporta archivos en este dispositivo iOS');
+          return;
+        }
+
+        //setToastMessage('Abriendo el diálogo de compartir...');
+        await navigator.share({
+          files: [sharedFile],
+          title: file.name,
+          text: 'Comparte o guarda el archivo en tu dispositivo',
+        });
+        //setToastMessage('Compartir completado.');
+      } catch (error: any) {
+        const cancelled = error?.name === 'AbortError' || /cancel/i.test(error?.message || '');
+        if (cancelled) {
+          //setToastMessage('Compartir cancelado.');
+        } else {
+          console.error('Error sharing file on iOS:', error);
+          setToastMessage('Error al guardar el archivo.');
+        }
       } finally {
-        setTimeout(() => setShowToast(false), 4000);
+        setTimeout(() => setShowToast(false), 3000);
       }
       return;
     }
