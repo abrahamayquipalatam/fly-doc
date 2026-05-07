@@ -117,7 +117,26 @@ const FileExplorer = ({ userEmail }: { userEmail: string }) => {
   const handleDownload = (file: FileItem) => {
     // Initiates download via API route
     setShowToast(true);
-    window.location.href = `/api/files/${file.id}/download`;
+    const url = `/api/files/${file.id}/download`;
+
+    // Detectar si es iOS (iPhone, iPad, iPod)
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+                  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+    if (isIOS) {
+      // En iOS, window.location.href a veces no funciona para descargas o navega fuera de la PWA
+      // Abrir en una nueva pestaña permite que el visor nativo de iOS maneje el archivo
+      window.open(url, '_blank');
+    } else {
+      // Para otros dispositivos (Android, Windows), usamos un link temporal con atributo download
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', file.name);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
     // Hide toast after a reasonable time for download to start
     setTimeout(() => setShowToast(false), 3000);
   };

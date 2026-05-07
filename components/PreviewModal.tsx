@@ -38,10 +38,11 @@ const PreviewModal = ({ file, onClose, onDownload, onLoadComplete }: PreviewModa
   const getPreviewUrl = (file: FileItem) => {
     const base = `/api/files/${file.id}/download`;
     if (isPDF || isDoc) {
-      // For PDFs and Docs, we use the Google Viewer to only load the first few pages if possible
-      // or append a fragment for PDF viewer
-      const url = isPDF ? `${base}?preview=true#page=1-3` : `https://docs.google.com/viewer?srcid=${file.id}&pid=explorer&efh=false&cp=1-3&a=v&chrome=false&embedded=true`;
-      return url;
+      if (isPDF) {
+        // En iOS, a veces los fragmentos como #page=1-3 pueden interferir con el visor nativo
+        return isIOS ? `${base}?preview=true` : `${base}?preview=true#toolbar=1&navpanes=1&scrollbar=1&page=1`;
+      }
+      return `https://docs.google.com/viewer?srcid=${file.id}&pid=explorer&efh=false&cp=1-3&a=v&chrome=false&embedded=true`;
     }
     if (isImage || isVideo || isAudio) {
       return `${base}?preview=true`;
@@ -57,9 +58,17 @@ const PreviewModal = ({ file, onClose, onDownload, onLoadComplete }: PreviewModa
     typeof window !== 'undefined' ? window.innerWidth : 1024
   );
 
+  const [isIOS, setIsIOS] = useState(false);
+
   useEffect(() => {
     const handleResize = () => setScreenWidth(window.innerWidth);
     window.addEventListener('resize', handleResize);
+    
+    // Detectar iOS
+    const checkIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+                     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    setIsIOS(checkIOS);
+
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
@@ -168,9 +177,8 @@ const PreviewModal = ({ file, onClose, onDownload, onLoadComplete }: PreviewModa
             flexShrink: 0
           }}>
             {/* Download */}
-            {/*
             <button
-              onClick={onDownload}
+              onClick={handleDownload}
               className="win11-hover"
               style={{
                 height: '36px',
@@ -189,9 +197,8 @@ const PreviewModal = ({ file, onClose, onDownload, onLoadComplete }: PreviewModa
               }}
             >
               <Icon name="download" size={18} />
-              <span className="hide-mobile">DESCARGAR Y REGISTRAR</span>
+              <span className="hide-mobile">DESCARGAR</span>
             </button>
-            */}
 
             {/* Close */}
             <button
@@ -258,6 +265,14 @@ const PreviewModal = ({ file, onClose, onDownload, onLoadComplete }: PreviewModa
                 Tu navegador no soporta la reproducción de audio.
               </audio>
             </div>
+          ) : isPDF && isIOS ? (
+            <embed
+              src={getPreviewUrl(file)}
+              type="application/pdf"
+              width="100%"
+              height="100%"
+              style={{ background: 'white' }}
+            />
           ) : (
             <iframe
               src={getPreviewUrl(file)}
