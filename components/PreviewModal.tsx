@@ -85,7 +85,7 @@ const PreviewModal = ({ file, onClose, onDownload, onLoadComplete }: PreviewModa
 
           return new Promise<any>((resolve, reject) => {
             const script = document.createElement('script');
-            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.122/pdf.min.js';
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js';
             script.async = true;
             script.onload = () => {
               const pdfjsLib = (window as any).pdfjsLib;
@@ -106,7 +106,7 @@ const PreviewModal = ({ file, onClose, onDownload, onLoadComplete }: PreviewModa
         }
 
         pdfjsLib.GlobalWorkerOptions.workerSrc =
-          'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.122/pdf.worker.min.js';
+          'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
 
         const response = await fetch(`/api/files/${file.id}/download?preview=true`);
         if (!response.ok) {
