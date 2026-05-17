@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Win11Icon from './Win11Icon';
 import { Icon } from './Icon';
 import { isIOS } from '@/lib/utils';
@@ -54,6 +54,9 @@ const PreviewModal = ({ file, onClose, onDownload, onLoadComplete }: PreviewModa
     onDownload();
   };
 
+  const pdfContainerRef = useRef<HTMLDivElement | null>(null);
+  const [loadingPdf, setLoadingPdf] = useState(false);
+  const [pdfError, setPdfError] = useState<string | null>(null);
   const [screenWidth, setScreenWidth] = useState(
     typeof window !== 'undefined' ? window.innerWidth : 1024
   );
@@ -64,6 +67,114 @@ const PreviewModal = ({ file, onClose, onDownload, onLoadComplete }: PreviewModa
 
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  useEffect(() => {
+    if (!file || !isPDF || !isIOS()) return;
+
+    let cancelled = false;
+    const container = pdfContainerRef.current;
+
+    const renderPdf = async () => {
+      setLoadingPdf(true);
+      setPdfError(null);
+
+      try {
+        const loadPdfJs = async () => {
+          if (typeof window === 'undefined') return null;
+          if ((window as any).pdfjsLib) return (window as any).pdfjsLib;
+
+          return new Promise<any>((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.122/pdf.min.js';
+            script.async = true;
+            script.onload = () => {
+              const pdfjsLib = (window as any).pdfjsLib;
+              if (!pdfjsLib) {
+                reject(new Error('No se pudo cargar pdf.js'));
+                return;
+              }
+              resolve(pdfjsLib);
+            };
+            script.onerror = () => reject(new Error('No se pudo cargar pdf.js'));
+            document.body.appendChild(script);
+          });
+        };
+
+        const pdfjsLib = await loadPdfJs();
+        if (!pdfjsLib) {
+          throw new Error('pdf.js no está disponible');
+        }
+
+        pdfjsLib.GlobalWorkerOptions.workerSrc =
+          'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.122/pdf.worker.min.js';
+
+        const response = await fetch(`/api/files/${file.id}/download?preview=true`);
+        if (!response.ok) {
+          throw new Error('No se pudo cargar el PDF');
+        }
+
+        const data = await response.arrayBuffer();
+        const loadingTask = pdfjsLib.getDocument({ data });
+        const pdf = await loadingTask.promise;
+
+        if (cancelled || !container) return;
+
+        container.innerHTML = '';
+
+        for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
+          if (cancelled) return;
+
+          const page = await pdf.getPage(pageNumber);
+          const viewport = page.getViewport({ scale: 1 });
+          const maxWidth = Math.min(container.clientWidth - 32, 1100);
+          const scale = maxWidth / viewport.width;
+          const scaledViewport = page.getViewport({ scale });
+
+          const canvas = document.createElement('canvas');
+          const context = canvas.getContext('2d');
+          canvas.width = scaledViewport.width;
+          canvas.height = scaledViewport.height;
+          canvas.style.width = '100%';
+          canvas.style.maxWidth = '1100px';
+          canvas.style.borderRadius = '8px';
+          canvas.style.boxShadow = '0 10px 30px rgba(0,0,0,0.1)';
+          canvas.style.marginBottom = '18px';
+          canvas.style.background = 'white';
+
+          if (!context) {
+            throw new Error('No se pudo renderizar la página del PDF');
+          }
+
+          await page.render({ canvasContext: context, viewport: scaledViewport }).promise;
+
+          const pageWrapper = document.createElement('div');
+          pageWrapper.style.display = 'flex';
+          pageWrapper.style.justifyContent = 'center';
+          pageWrapper.appendChild(canvas);
+          container.appendChild(pageWrapper);
+        }
+
+        if (!cancelled) {
+          onLoadComplete?.();
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setPdfError((error as Error).message || 'Error al cargar el PDF');
+        }
+      } finally {
+        if (!cancelled) {
+          setLoadingPdf(false);
+        }
+      }
+    };
+
+    renderPdf();
+
+    return () => {
+      cancelled = true;
+      if (container) container.innerHTML = '';
+    };
+  }, [file, isPDF, onLoadComplete]);
 
   const truncateFileName = (name: string) => {
     let maxLength = 50; // desktop
@@ -284,19 +395,57 @@ const PreviewModal = ({ file, onClose, onDownload, onLoadComplete }: PreviewModa
               </audio>
             </div>
           ) : isPDF ? (
-            <iframe
-              src={getPreviewUrl(file)}
-              onLoad={onLoadComplete}
-              width="100%"
-              height="100%"
-              frameBorder="0"
-              title={file.name}
-              style={{
-                background: 'white',
-                borderRadius: isIOS() ? '0' : '8px',
-                boxShadow: isIOS() ? 'none' : '0 10px 30px rgba(0,0,0,0.1)'
-              }}
-            />
+            isIOS() ? (
+              <div style={{
+                width: '100%',
+                height: '100%',
+                overflowY: 'auto',
+                padding: '20px',
+                boxSizing: 'border-box'
+              }}>
+                {loadingPdf && (
+                  <div style={{
+                    color: 'var(--text-secondary)',
+                    textAlign: 'center',
+                    marginTop: '24px'
+                  }}>
+                    Cargando PDF…
+                  </div>
+                )}
+                {pdfError && (
+                  <div style={{
+                    color: 'var(--text-secondary)',
+                    textAlign: 'center',
+                    marginTop: '24px'
+                  }}>
+                    {pdfError}
+                  </div>
+                )}
+                <div
+                  ref={pdfContainerRef}
+                  style={{
+                    width: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center'
+                  }}
+                />
+              </div>
+            ) : (
+              <iframe
+                src={getPreviewUrl(file)}
+                onLoad={onLoadComplete}
+                width="100%"
+                height="100%"
+                frameBorder="0"
+                title={file.name}
+                style={{
+                  background: 'white',
+                  borderRadius: isIOS() ? '0' : '8px',
+                  boxShadow: isIOS() ? 'none' : '0 10px 30px rgba(0,0,0,0.1)'
+                }}
+              />
+            )
           ) : (
             <iframe
               src={getPreviewUrl(file)}
