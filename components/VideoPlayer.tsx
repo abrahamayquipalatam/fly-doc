@@ -20,8 +20,8 @@ export default function VideoPlayer({ src, type, onLoaded, isIOS }: VideoPlayerP
     // Make sure Video.js player is only initialized once
     if (!playerRef.current && videoRef.current) {
       // Create a <video> element to insert into the DOM
-      const videoElement = document.createElement("video-js");
-      videoElement.classList.add('vjs-big-play-centered');
+      const videoElement = document.createElement("video");
+      videoElement.classList.add('video-js', 'vjs-big-play-centered');
       videoElement.style.width = '100%';
       videoElement.style.height = '100%';
       

@@ -11,25 +11,28 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     let targetId = fileId;
     let fileResponse = await drive.files.get({
       fileId: targetId,
-      fields: 'id, name, mimeType, shortcutDetails',
+      fields: 'id, name, mimeType, size, shortcutDetails',
     });
 
     if (fileResponse.data.mimeType === 'application/vnd.google-apps.shortcut' && fileResponse.data.shortcutDetails?.targetId) {
       targetId = fileResponse.data.shortcutDetails.targetId;
       fileResponse = await drive.files.get({
         fileId: targetId,
-        fields: 'id, name, mimeType',
+        fields: 'id, name, mimeType, size',
       });
     }
 
     const file = fileResponse.data;
     let fileName = file.name || '';
 
+    const fileSize = file.size;
     const isGoogleDoc = file.mimeType?.startsWith('application/vnd.google-apps.');
     const isExportable = isGoogleDoc && !file.mimeType?.endsWith('.folder') && !file.mimeType?.endsWith('.shortcut');
 
     let streamData: any;
     let mimeType = file.mimeType || 'application/octet-stream';
+    const headers = new Headers();
+    let status = 200;
 
     if (isExportable) {
       // Google application files must be exported (for example to PDF)
@@ -43,14 +46,32 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         fileName = `${fileName}.pdf`;
       }
     } else {
+      const rangeHeader = request.headers.get('range');
+      let headersConfig: any = {};
+      
+      if (rangeHeader && fileSize) {
+        const parts = rangeHeader.replace(/bytes=/, "").split("-");
+        const start = parseInt(parts[0], 10);
+        const end = parts[1] ? parseInt(parts[1], 10) : Number(fileSize) - 1;
+        const chunksize = (end - start) + 1;
+        
+        headersConfig = { Range: `bytes=${start}-${end}` };
+        status = 206;
+        headers.set('Content-Range', `bytes ${start}-${end}/${fileSize}`);
+        headers.set('Accept-Ranges', 'bytes');
+        headers.set('Content-Length', chunksize.toString());
+      } else if (fileSize) {
+        headers.set('Content-Length', fileSize.toString());
+        headers.set('Accept-Ranges', 'bytes');
+      }
+
       const streamResponse = await drive.files.get(
         { fileId: targetId, alt: 'media' },
-        { responseType: 'stream' }
+        { responseType: 'stream', headers: headersConfig }
       );
       streamData = streamResponse.data;
     }
 
-    const headers = new Headers();
     headers.set('Content-Type', mimeType);
 
     // Content-Disposition header must only contain characters in the
@@ -73,7 +94,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       `${dispositionType}; filename="${asciiName}"; filename*=UTF-8''${encodedName}`
     );
 
-    return new NextResponse(streamData, { headers });
+    return new NextResponse(streamData, { status, headers });
   } catch (error: any) {
     console.error('Error description:', error.message || error);
     if (error.response) {
