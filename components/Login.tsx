@@ -15,13 +15,10 @@ export default function Login({ onLoginSuccess }: LoginProps) {
 
   useEffect(() => {
     const checkUser = async () => {
-      setLoading(true);
       const { data: { session } } = await supabase.auth.getSession();
 
       if (session?.user?.email) {
         await handleBackendAuth(session.user.email);
-      } else {
-        setLoading(false);
       }
     };
 

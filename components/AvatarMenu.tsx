@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { Icon } from './Icon';
+import Toast from './Toast';
 
 interface AvatarMenuProps {
   userEmail: string;
@@ -12,6 +13,7 @@ interface AvatarMenuProps {
 const AvatarMenu: React.FC<AvatarMenuProps> = ({ userEmail, userName }) => {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -36,11 +38,15 @@ const AvatarMenu: React.FC<AvatarMenuProps> = ({ userEmail, userName }) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
+  const handleLogout = () => {
+    setIsLoggingOut(true);
+    setIsOpen(false);
     localStorage.removeItem('skyVaultUserEmail');
     localStorage.removeItem('skyVaultUserId');
-    window.location.reload();
+    
+    supabase.auth.signOut().finally(() => {
+      window.location.reload();
+    });
   };
 
   return (
@@ -148,6 +154,7 @@ const AvatarMenu: React.FC<AvatarMenuProps> = ({ userEmail, userName }) => {
         }
         `
       }} />
+      <Toast isVisible={isLoggingOut} message="Cerrando Sesión..." />
     </div>
   );
 };

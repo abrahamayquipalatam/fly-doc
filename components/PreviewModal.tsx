@@ -58,6 +58,12 @@ const PreviewModal = ({ file, onClose, onDownload, onLoadComplete }: PreviewModa
   const pdfContainerRef = useRef<HTMLDivElement | null>(null);
   const [loadingPdf, setLoadingPdf] = useState(false);
   const [pdfError, setPdfError] = useState<string | null>(null);
+  const [isMediaLoaded, setIsMediaLoaded] = useState(false);
+
+  const handleMediaLoad = () => {
+    setIsMediaLoaded(true);
+    onLoadComplete?.();
+  };
   const [screenWidth, setScreenWidth] = useState(
     typeof window !== 'undefined' ? window.innerWidth : 1024
   );
@@ -156,6 +162,7 @@ const PreviewModal = ({ file, onClose, onDownload, onLoadComplete }: PreviewModa
         }
 
         if (!cancelled) {
+          setIsMediaLoaded(true);
           onLoadComplete?.();
         }
       } catch (error) {
@@ -356,13 +363,15 @@ const PreviewModal = ({ file, onClose, onDownload, onLoadComplete }: PreviewModa
           alignItems: 'center',
           overflow: 'hidden',
           position: 'relative',
-          padding: 0
+          padding: 0,
+          opacity: isMediaLoaded || pdfError ? 1 : 0,
+          transition: 'opacity 0.2s ease-in-out'
         }}>
           {isImage ? (
             <img
               src={getPreviewUrl(file)}
               alt={file.name}
-              onLoad={onLoadComplete}
+              onLoad={handleMediaLoad}
               style={{
                 maxWidth: '100%',
                 maxHeight: '100%',
@@ -375,7 +384,7 @@ const PreviewModal = ({ file, onClose, onDownload, onLoadComplete }: PreviewModa
             <video
               controls
               autoPlay
-              onLoadedData={onLoadComplete}
+              onLoadedData={handleMediaLoad}
               style={{
                 maxWidth: '100%',
                 maxHeight: '100%',
@@ -393,7 +402,7 @@ const PreviewModal = ({ file, onClose, onDownload, onLoadComplete }: PreviewModa
               boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
               maxWidth: '90%'
             }}>
-              <audio controls autoPlay onCanPlayThrough={onLoadComplete}>
+              <audio controls autoPlay onCanPlayThrough={handleMediaLoad}>
                 <source src={getPreviewUrl(file)} type={file.mimeType} />
                 Tu navegador no soporta la reproducción de audio.
               </audio>
@@ -420,7 +429,7 @@ const PreviewModal = ({ file, onClose, onDownload, onLoadComplete }: PreviewModa
             ) : (
               <iframe
                 src={getPreviewUrl(file)}
-                onLoad={onLoadComplete}
+                onLoad={handleMediaLoad}
                 width="100%"
                 height="100%"
                 frameBorder="0"
@@ -435,7 +444,7 @@ const PreviewModal = ({ file, onClose, onDownload, onLoadComplete }: PreviewModa
           ) : (
             <iframe
               src={getPreviewUrl(file)}
-              onLoad={onLoadComplete}
+              onLoad={handleMediaLoad}
               width="100%"
               height="100%"
               frameBorder="0"
