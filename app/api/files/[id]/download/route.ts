@@ -48,13 +48,13 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     } else {
       const rangeHeader = request.headers.get('range');
       let headersConfig: any = {};
-      
+
       if (rangeHeader && fileSize) {
         const parts = rangeHeader.replace(/bytes=/, "").split("-");
         const start = parseInt(parts[0], 10);
         const end = parts[1] ? parseInt(parts[1], 10) : Number(fileSize) - 1;
         const chunksize = (end - start) + 1;
-        
+
         headersConfig = { Range: `bytes=${start}-${end}` };
         status = 206;
         headers.set('Content-Range', `bytes ${start}-${end}/${fileSize}`);

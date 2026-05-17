@@ -24,7 +24,7 @@ export default function VideoPlayer({ src, type, onLoaded, isIOS }: VideoPlayerP
       videoElement.classList.add('video-js', 'vjs-big-play-centered');
       videoElement.style.width = '100%';
       videoElement.style.height = '100%';
-      
+
       if (!isIOS) {
         videoElement.style.borderRadius = '8px';
         videoElement.style.overflow = 'hidden';
@@ -52,7 +52,7 @@ export default function VideoPlayer({ src, type, onLoaded, isIOS }: VideoPlayerP
         player.on('loadeddata', () => {
           if (onLoaded) onLoaded();
         });
-        
+
         // Sometimes loadeddata might not fire immediately or if cached
         player.on('canplay', () => {
           if (onLoaded) onLoaded();
