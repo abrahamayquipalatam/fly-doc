@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import Win11Icon from './Win11Icon';
 import { Icon } from './Icon';
 import { isIOS } from '@/lib/utils';
+import Toast from './Toast';
 
 interface FileItem {
   id: string;
@@ -160,6 +161,9 @@ const PreviewModal = ({ file, onClose, onDownload, onLoadComplete }: PreviewModa
       } catch (error) {
         if (!cancelled) {
           setPdfError((error as Error).message || 'Error al cargar el PDF');
+          setTimeout(() => {
+            if (!cancelled) setPdfError(null);
+          }, 4000);
         }
       } finally {
         if (!cancelled) {
@@ -403,24 +407,6 @@ const PreviewModal = ({ file, onClose, onDownload, onLoadComplete }: PreviewModa
                 padding: '20px',
                 boxSizing: 'border-box'
               }}>
-                {loadingPdf && (
-                  <div style={{
-                    color: 'var(--text-secondary)',
-                    textAlign: 'center',
-                    marginTop: '24px'
-                  }}>
-                    Cargando PDF…
-                  </div>
-                )}
-                {pdfError && (
-                  <div style={{
-                    color: 'var(--text-secondary)',
-                    textAlign: 'center',
-                    marginTop: '24px'
-                  }}>
-                    {pdfError}
-                  </div>
-                )}
                 <div
                   ref={pdfContainerRef}
                   style={{
@@ -463,6 +449,10 @@ const PreviewModal = ({ file, onClose, onDownload, onLoadComplete }: PreviewModa
           )}
         </div>
       </div>
+      <Toast 
+        isVisible={loadingPdf || !!pdfError} 
+        message={pdfError ? pdfError : 'Cargando PDF...'} 
+      />
     </div>
   );
 };
