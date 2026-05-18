@@ -382,22 +382,40 @@ const PreviewModal = ({ file, onClose, onDownload, onLoadComplete }: PreviewModa
               }}
             />
           ) : isVideo ? (
-            <div style={{
-              width: '100%',
-              height: '100%',
-              maxWidth: '100%',
-              maxHeight: '100%',
-              boxShadow: isIOS() ? 'none' : '0 10px 30px rgba(0,0,0,0.1)',
-              borderRadius: isIOS() ? '0' : '8px',
-              overflow: 'hidden'
-            }}>
-              <VideoPlayer
-                src={getPreviewUrl(file)}
-                type={file.mimeType}
-                onLoaded={handleMediaLoad}
-                isIOS={isIOS()}
+            isIOS() ? (
+              <div style={{
+                width: '100%',
+                height: '100%',
+                maxWidth: '100%',
+                maxHeight: '100%',
+                boxShadow: 'none',
+                borderRadius: '0',
+                overflow: 'hidden'
+              }}>
+                <VideoPlayer
+                  src={getPreviewUrl(file)}
+                  type={file.mimeType}
+                  onLoaded={handleMediaLoad}
+                  isIOS={true}
+                />
+              </div>
+            ) : (
+              <iframe
+                src={`https://drive.google.com/file/d/${file.id}/preview`}
+                title={file.name || "Video almacenado en Google Drive"}
+                allow="autoplay; fullscreen"
+                allowFullScreen
+                onLoad={handleMediaLoad}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  border: 'none',
+                  borderRadius: '8px',
+                  boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
+                  background: 'black'
+                }}
               />
-            </div>
+            )
           ) : isAudio ? (
             <div style={{
               padding: isIOS() ? '20px' : '40px',
