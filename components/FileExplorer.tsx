@@ -143,9 +143,7 @@ const FileExplorer = ({ userEmail }: { userEmail: string }) => {
 
         //setToastMessage('Abriendo el diálogo de compartir...');
         await navigator.share({
-          files: [sharedFile],
-          title: file.name,
-          text: 'Comparte o guarda el archivo en tu dispositivo',
+          files: [sharedFile]
         });
         //setToastMessage('Compartir completado.');
       } catch (error: any) {

@@ -38,11 +38,7 @@ const TreeItem: React.FC<{
     const isSelected = currentFolderId === item.id;
 
     // Auto-expand if this item is selected or if we should show its children
-    useEffect(() => {
-        if (isSelected && !isExpanded) {
-            setIsExpanded(true);
-        }
-    }, [isSelected]);
+    // Removed to keep the tree closed by default as requested.
 
     const toggleExpand = async (e?: React.MouseEvent) => {
         if (e) e.stopPropagation();
