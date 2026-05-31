@@ -49,6 +49,8 @@ const FileList = ({ files, onFolderClick, onFileClick, onDownload, viewMode = 'l
     return a.name.localeCompare(b.name, undefined, { sensitivity: 'base', numeric: true });
   });
 
+  const isOnlyFolders = files.length > 0 && files.every(isFolder);
+
   if (viewMode === 'grid') {
     return (
       <div className="explorer-view" style={{ overflowY: 'auto', height: '100%', padding: '20px' }}>
@@ -95,13 +97,17 @@ const FileList = ({ files, onFolderClick, onFileClick, onDownload, viewMode = 'l
 
   return (
     <div className="explorer-view" style={{ overflowY: 'auto', height: '100%' }}>
-      <table className="explorer-table no-select" style={{ width: '100%', tableLayout: 'fixed' }}>
+      <table className={`explorer-table no-select ${isOnlyFolders ? 'only-folders' : ''}`} style={{ width: '100%', tableLayout: 'fixed' }}>
         <thead>
           <tr>
             <th className="col-name">Nombre</th>
             <th className="col-date hide-on-tablet">Fecha de modificación</th>
-            <th className="col-size hide-on-tablet">Tamaño</th>
-            <th className="col-actions">Acciones</th>
+            {!isOnlyFolders && (
+              <>
+                <th className="col-size hide-on-tablet">Tamaño</th>
+                <th className="col-actions">Acciones</th>
+              </>
+            )}
           </tr>
         </thead>
         <tbody>
@@ -124,74 +130,78 @@ const FileList = ({ files, onFolderClick, onFileClick, onDownload, viewMode = 'l
               <td className="hide-on-tablet col-date" style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
                 {formatDate(file.modifiedTime)}
               </td>
-              <td className="hide-on-tablet col-size" style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                {isFolder(file) ? '' : formatSize(file.size)}
-              </td>
-              <td className="actions-cell col-actions">
-                <div className="flex items-center" style={{ display: 'flex', gap: '6px', flexWrap: 'nowrap', justifyContent: 'flex-start' }}>
-                  {!isFolder(file) && (
-                    <>
-                      <button
-                        className="win11-hover action-btn download-btn"
-                        title="Descargar"
-                        style={{
-                          padding: '6px 10px',
-                          border: '1px solid var(--border-color)',
-                          borderRadius: '4px',
-                          textDecoration: 'none',
-                          fontSize: '0.75rem',
-                          fontWeight: '500',
-                          color: 'var(--accent-color)',
-                          display: 'flex',
-                          flexDirection: 'row',
-                          alignItems: 'center',
-                          gap: '6px',
-                          whiteSpace: 'nowrap',
-                          background: 'transparent',
-                          cursor: 'pointer'
-                        }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onDownload(file);
-                        }}
-                      >
-                        <Icon name="download" size={16} />
-                        <span className="btn-text">Descargar</span>
-                      </button>
-                      <button
-                        className="win11-hover action-btn preview-btn"
-                        title="Ver"
-                        style={{
-                          padding: '6px 10px',
-                          border: '1px solid var(--border-color)',
-                          borderRadius: '4px',
-                          fontSize: '0.75rem',
-                          display: 'flex',
-                          flexDirection: 'row',
-                          alignItems: 'center',
-                          gap: '6px',
-                          whiteSpace: 'nowrap',
-                          background: 'transparent',
-                          color: 'inherit',
-                          cursor: 'pointer'
-                        }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onFileClick(file);
-                        }}
-                      >
-                        <Icon name="eye" size={16} />
-                        <span className="btn-text">Ver</span>
-                      </button>
-                    </>
-                  )}
-                </div>
-              </td>
+              {!isOnlyFolders && (
+                <>
+                  <td className="hide-on-tablet col-size" style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                    {isFolder(file) ? '' : formatSize(file.size)}
+                  </td>
+                  <td className="actions-cell col-actions">
+                    <div className="flex items-center" style={{ display: 'flex', gap: '6px', flexWrap: 'nowrap', justifyContent: 'flex-start' }}>
+                      {!isFolder(file) && (
+                        <>
+                          <button
+                            className="win11-hover action-btn download-btn"
+                            title="Descargar"
+                            style={{
+                              padding: '6px 10px',
+                              border: '1px solid var(--border-color)',
+                              borderRadius: '4px',
+                              textDecoration: 'none',
+                              fontSize: '0.75rem',
+                              fontWeight: '500',
+                              color: 'var(--accent-color)',
+                              display: 'flex',
+                              flexDirection: 'row',
+                              alignItems: 'center',
+                              gap: '6px',
+                              whiteSpace: 'nowrap',
+                              background: 'transparent',
+                              cursor: 'pointer'
+                            }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onDownload(file);
+                            }}
+                          >
+                            <Icon name="download" size={16} />
+                            <span className="btn-text">Descargar</span>
+                          </button>
+                          <button
+                            className="win11-hover action-btn preview-btn"
+                            title="Ver"
+                            style={{
+                              padding: '6px 10px',
+                              border: '1px solid var(--border-color)',
+                              borderRadius: '4px',
+                              fontSize: '0.75rem',
+                              display: 'flex',
+                              flexDirection: 'row',
+                              alignItems: 'center',
+                              gap: '6px',
+                              whiteSpace: 'nowrap',
+                              background: 'transparent',
+                              color: 'inherit',
+                              cursor: 'pointer'
+                            }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onFileClick(file);
+                            }}
+                          >
+                            <Icon name="eye" size={16} />
+                            <span className="btn-text">Ver</span>
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </td>
+                </>
+              )}
             </tr>
           ))}
           {files.length === 0 && (
             <tr>
-              <td colSpan={4} style={{ textAlign: 'center', padding: '40px', color: 'var(--text-secondary)' }}>
+              <td colSpan={isOnlyFolders ? 2 : 4} style={{ textAlign: 'center', padding: '40px', color: 'var(--text-secondary)' }}>
                 No se encontraron resultados o la carpeta está vacía
               </td>
             </tr>
@@ -312,6 +322,22 @@ const FileList = ({ files, onFolderClick, onFileClick, onDownload, viewMode = 'l
                 
         .action-btn {
           flex-shrink: 0;
+        }
+
+        /* =========================
+           ONLY FOLDERS VIEW
+        ========================= */
+        .only-folders .col-name {
+          width: 100% !important;
+        }
+        
+        @media (min-width: 1000px) {
+          .only-folders .col-name {
+            width: 70% !important;
+          }
+          .only-folders .col-date {
+            width: 30% !important;
+          }
         }
         `}}
       />
