@@ -38,7 +38,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       // Google application files must be exported (for example to PDF)
       const exportResponse = await drive.files.export(
         { fileId: targetId, mimeType: 'application/pdf' },
-        { responseType: 'stream' }
+        { responseType: 'stream', headers: { 'Accept-Encoding': 'identity' } }
       );
       streamData = exportResponse.data;
       mimeType = 'application/pdf';
@@ -47,7 +47,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       }
     } else {
       const rangeHeader = request.headers.get('range');
-      let headersConfig: any = {};
+      let headersConfig: any = {
+        'Accept-Encoding': 'identity'
+      };
 
       if (rangeHeader && fileSize) {
         const parts = rangeHeader.replace(/bytes=/, "").split("-");
@@ -55,13 +57,18 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         const end = parts[1] ? parseInt(parts[1], 10) : Number(fileSize) - 1;
         const chunksize = (end - start) + 1;
 
-        headersConfig = { Range: `bytes=${start}-${end}` };
+        headersConfig = {
+          Range: `bytes=${start}-${end}`,
+          'Accept-Encoding': 'identity'
+        };
         status = 206;
         headers.set('Content-Range', `bytes ${start}-${end}/${fileSize}`);
         headers.set('Accept-Ranges', 'bytes');
         headers.set('Content-Length', chunksize.toString());
       } else if (fileSize) {
-        headers.set('Content-Length', fileSize.toString());
+        // We do NOT set Content-Length for 200 OK responses to avoid ERR_CONTENT_DECODING_FAILED
+        // when Vercel or Next.js applies compression (gzip/Brotli) to the streamed response.
+        // Instead, we let the server use chunked encoding or calculate Content-Length automatically.
         headers.set('Accept-Ranges', 'bytes');
       }
 
