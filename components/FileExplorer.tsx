@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import NavigationSidebar from '../components/NavigationSidebar';
 import FileList from '../components/FileList';
 import Breadcrumb from '../components/Breadcrumb';
@@ -80,8 +80,7 @@ const FileExplorer = ({ userEmail }: { userEmail: string }) => {
   }, [userEmail]);
 
 
-  // load files whenever currentFolder changes
-  useEffect(() => {
+  const loadFiles = useCallback(() => {
     if (!currentFolder) return;
     setLoading(true);
     setSearchTerm(''); // Limpiar búsqueda al cambiar de carpeta
@@ -121,7 +120,12 @@ const FileExplorer = ({ userEmail }: { userEmail: string }) => {
         console.error('Error fetching folder:', err);
         setLoading(false);
       });
-  }, [currentFolder, userName, rootFolders]);
+  }, [currentFolder, rootFolders]);
+
+  // load files whenever currentFolder changes
+  useEffect(() => {
+    loadFiles();
+  }, [loadFiles]);
 
   const handleFolderClick = (folder: FileItem) => {
     setCurrentFolder(folder.id);
@@ -287,10 +291,47 @@ const FileExplorer = ({ userEmail }: { userEmail: string }) => {
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: '8px', marginTop: '4px', overflowX: 'auto', paddingBottom: '4px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', marginTop: '4px', overflowX: 'auto', paddingBottom: '4px' }}>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                onClick={() => setViewMode('list')}
+                className={`win11-hover ${viewMode === 'list' ? 'selected' : ''}`}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: '4px',
+                  fontSize: '0.85rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  background: viewMode === 'list' ? 'var(--selected-bg)' : 'transparent',
+                  border: '1px solid ' + (viewMode === 'list' ? 'var(--accent-color)' : 'transparent'),
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                <Icon name="list" size={16} /> Lista
+              </button>
+              <button
+                onClick={() => setViewMode('grid')}
+                className={`win11-hover ${viewMode === 'grid' ? 'selected' : ''}`}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: '4px',
+                  fontSize: '0.85rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  background: viewMode === 'grid' ? 'var(--selected-bg)' : 'transparent',
+                  border: '1px solid ' + (viewMode === 'grid' ? 'var(--accent-color)' : 'transparent'),
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                <Icon name="layout-grid" size={16} /> Cuadrícula
+              </button>
+            </div>
             <button
-              onClick={() => setViewMode('list')}
-              className={`win11-hover ${viewMode === 'list' ? 'selected' : ''}`}
+              onClick={loadFiles}
+              disabled={loading}
+              className="win11-hover"
               style={{
                 padding: '6px 12px',
                 borderRadius: '4px',
@@ -298,29 +339,15 @@ const FileExplorer = ({ userEmail }: { userEmail: string }) => {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '6px',
-                background: viewMode === 'list' ? 'var(--selected-bg)' : 'transparent',
-                border: '1px solid ' + (viewMode === 'list' ? 'var(--accent-color)' : 'transparent'),
-                whiteSpace: 'nowrap'
+                background: 'transparent',
+                border: '1px solid var(--border-color)',
+                whiteSpace: 'nowrap',
+                color: 'inherit',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                opacity: loading ? 0.7 : 1
               }}
             >
-              <Icon name="list" size={16} /> Lista
-            </button>
-            <button
-              onClick={() => setViewMode('grid')}
-              className={`win11-hover ${viewMode === 'grid' ? 'selected' : ''}`}
-              style={{
-                padding: '6px 12px',
-                borderRadius: '4px',
-                fontSize: '0.85rem',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                background: viewMode === 'grid' ? 'var(--selected-bg)' : 'transparent',
-                border: '1px solid ' + (viewMode === 'grid' ? 'var(--accent-color)' : 'transparent'),
-                whiteSpace: 'nowrap'
-              }}
-            >
-              <Icon name="layout-grid" size={16} /> Cuadrícula
+              <Icon name="refresh" size={16} className={loading ? 'animate-spin' : ''} /> Recargar
             </button>
           </div>
         </header>

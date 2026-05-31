@@ -47,6 +47,7 @@ export const ICON_MAP = {
     'arrow-up-right': Iconsax.TrendUp,
     'arrow-down-right': Iconsax.TrendDown,
     'external-link': Iconsax.Export,
+    refresh: Iconsax.Refresh,
 
     // UI Elements
     pin: Iconsax.AttachSquare,
