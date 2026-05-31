@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import logo from '../assets/flydoc-logo-negro.png';
+import logoNegro from '../assets/flydoc-logo-negro.png';
+import logoBlanco from '../assets/flydoc-logo-blanco.png';
 import { supabase } from '../lib/supabaseClient';
 
 interface LoginProps {
@@ -12,6 +13,19 @@ interface LoginProps {
 export default function Login({ onLoginSuccess }: LoginProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [theme, setThemeState] = useState<'light' | 'dark'>('light');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setThemeState(document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+    }
+
+    const handleThemeChange = () => {
+      setThemeState(document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+    };
+    window.addEventListener('theme-change', handleThemeChange);
+    return () => window.removeEventListener('theme-change', handleThemeChange);
+  }, []);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -103,7 +117,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
       fontFamily: '"Trebuchet MS", "Lucida Sans Unicode", "Lucida Grande", "Lucida Sans", Arial, sans-serif'
     }}>
       <div style={{
-        backgroundColor: 'rgba(255, 255, 255)',
+        backgroundColor: 'var(--login-card-bg)',
         backdropFilter: 'blur(12px)',
         borderRadius: '8px',
         padding: '45px 50px',
@@ -113,21 +127,21 @@ export default function Login({ onLoginSuccess }: LoginProps) {
         flexDirection: 'column',
         alignItems: 'center',
         boxShadow: '0 25px 50px -12px rgba(15, 23, 42, 0.25)',
-        border: '1px solid rgba(255, 255, 255, 0.2)',
+        border: '1px solid var(--login-card-border)',
         position: 'relative',
         overflow: 'hidden'
       }}>
         <div style={{ marginBottom: '10px', textAlign: 'center' }}>
-          <Image src={logo} alt="FlyDoc Logo" height={80} style={{ objectFit: 'contain' }} />
-          <p style={{ fontSize: '1rem', color: '#4b5563', marginTop: '10px' }}>Gestiona tus documentos con un solo clic</p>
+          <Image src={theme === 'dark' ? logoBlanco : logoNegro} alt="FlyDoc Logo" height={80} style={{ objectFit: 'contain' }} />
+          <p style={{ fontSize: '1rem', color: 'var(--text-secondary)', marginTop: '10px' }}>Gestiona tus documentos con un solo clic</p>
         </div>
 
         {error && (
           <div style={{
             width: '100%',
-            backgroundColor: '#fef2f2',
+            backgroundColor: theme === 'dark' ? 'rgba(239, 68, 68, 0.15)' : '#fef2f2',
             borderLeft: '4px solid #ef4444',
-            color: '#991b1b',
+            color: theme === 'dark' ? '#fecaca' : '#991b1b',
             padding: '16px',
             marginBottom: '32px',
             borderRadius: '8px',
@@ -149,11 +163,11 @@ export default function Login({ onLoginSuccess }: LoginProps) {
             alignItems: 'center',
             justifyContent: 'center',
             gap: '8px',
-            backgroundColor: 'white',
-            color: '#1f2937',
+            backgroundColor: theme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'white',
+            color: 'var(--text-main)',
             padding: '16px 32px',
             borderRadius: '8px',
-            border: '1px solid #e5e7eb',
+            border: '1px solid var(--border-color)',
             fontSize: '1.05rem',
             fontWeight: '600',
             cursor: loading ? 'not-allowed' : 'pointer',
@@ -163,16 +177,16 @@ export default function Login({ onLoginSuccess }: LoginProps) {
           }}
           onMouseOver={(e) => {
             if (!loading) {
-              e.currentTarget.style.backgroundColor = '#f9fafb';
-              e.currentTarget.style.borderColor = '#d1d5db';
+              e.currentTarget.style.backgroundColor = theme === 'dark' ? 'rgba(255, 255, 255, 0.12)' : '#f9fafb';
+              e.currentTarget.style.borderColor = 'var(--accent-color)';
               e.currentTarget.style.transform = 'translateY(-2px)';
               e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)';
             }
           }}
           onMouseOut={(e) => {
             if (!loading) {
-              e.currentTarget.style.backgroundColor = 'white';
-              e.currentTarget.style.borderColor = '#e5e7eb';
+              e.currentTarget.style.backgroundColor = theme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'white';
+              e.currentTarget.style.borderColor = 'var(--border-color)';
               e.currentTarget.style.transform = 'translateY(0)';
               e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)';
             }
@@ -183,8 +197,8 @@ export default function Login({ onLoginSuccess }: LoginProps) {
               <div className="spinner" style={{
                 width: '20px',
                 height: '20px',
-                border: '3px solid rgba(0,0,0,0.1)',
-                borderTop: '3px solid #111827',
+                border: '3px solid var(--border-color)',
+                borderTop: '3px solid var(--text-main)',
                 borderRadius: '50%',
                 animation: 'spin 1s linear infinite'
               }} />
@@ -209,7 +223,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
             100% { transform: rotate(360deg); }
           }
         `}</style>
-        <div style={{ marginTop: '16px', fontSize: '0.75rem', color: '#9ca3af', textAlign: 'center', fontWeight: '500' }}>
+        <div style={{ marginTop: '16px', fontSize: '0.75rem', color: 'var(--text-secondary)', textAlign: 'center', fontWeight: '500' }}>
           &copy; 2026 FlyDoc Portal &sdot; Todos los derechos reservados.
         </div>
       </div>

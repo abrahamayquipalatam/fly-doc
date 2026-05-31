@@ -419,9 +419,11 @@ const PreviewModal = ({ file, onClose, onDownload, onLoadComplete }: PreviewModa
           ) : isAudio ? (
             <div style={{
               padding: isIOS() ? '20px' : '40px',
-              background: 'white',
+              background: 'var(--explorer-bg)',
+              color: 'var(--text-main)',
               borderRadius: '12px',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+              border: '1px solid var(--border-color)',
+              boxShadow: 'var(--glass-shadow)',
               maxWidth: '90%'
             }}>
               <audio controls autoPlay onCanPlayThrough={handleMediaLoad}>
@@ -457,9 +459,10 @@ const PreviewModal = ({ file, onClose, onDownload, onLoadComplete }: PreviewModa
                 frameBorder="0"
                 title={file.name}
                 style={{
-                  background: 'white',
+                  background: 'var(--explorer-bg)',
                   borderRadius: isIOS() ? '0' : '8px',
-                  boxShadow: isIOS() ? 'none' : '0 10px 30px rgba(0,0,0,0.1)'
+                  boxShadow: isIOS() ? 'none' : '0 10px 30px rgba(0,0,0,0.1)',
+                  border: 'none'
                 }}
               />
             )
@@ -472,9 +475,10 @@ const PreviewModal = ({ file, onClose, onDownload, onLoadComplete }: PreviewModa
               frameBorder="0"
               title={file.name}
               style={{
-                background: 'white',
+                background: 'var(--explorer-bg)',
                 borderRadius: isIOS() ? '0' : '8px',
-                boxShadow: isIOS() ? 'none' : '0 10px 30px rgba(0,0,0,0.1)'
+                boxShadow: isIOS() ? 'none' : '0 10px 30px rgba(0,0,0,0.1)',
+                border: 'none'
               }}
             />
           )}

@@ -4,7 +4,8 @@ import React, { useState, useEffect } from 'react';
 import Win11Icon from './Win11Icon';
 import { Icon } from './Icon';
 import Image from 'next/image';
-import Logo from '../assets/flydoc-logo-negro.png';
+import LogoNegro from '../assets/flydoc-logo-negro.png';
+import LogoBlanco from '../assets/flydoc-logo-blanco.png';
 import LogoShort from '../assets/logo-short.png';
 
 interface FileItem {
@@ -168,6 +169,7 @@ const TreeItem: React.FC<{
 
 const NavigationSidebar: React.FC<NavigationSidebarProps> = ({ currentFolderId, rootFolders, onFolderSelect, onFileSelect, isCollapsed, onToggleCollapse }) => {
     const [isMobile, setIsMobile] = useState(false);
+    const [theme, setThemeState] = useState<'light' | 'dark'>('light');
 
     useEffect(() => {
         const handleResize = () => {
@@ -176,6 +178,18 @@ const NavigationSidebar: React.FC<NavigationSidebarProps> = ({ currentFolderId, 
         handleResize();
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            setThemeState(document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+        }
+
+        const handleThemeChange = () => {
+            setThemeState(document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+        };
+        window.addEventListener('theme-change', handleThemeChange);
+        return () => window.removeEventListener('theme-change', handleThemeChange);
     }, []);
 
     if (isMobile) return null;
@@ -195,7 +209,7 @@ const NavigationSidebar: React.FC<NavigationSidebarProps> = ({ currentFolderId, 
             <div className="sidebar-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: isCollapsed ? '8px 0 16px 0' : '8px 12px 16px 24px', flexWrap: 'nowrap' }}>
                 {!isCollapsed && (
                     <div className="logo-container">
-                        <Image src={Logo} alt="FlyDoc Logo" height={42} style={{ width: 'auto' }} />
+                        <Image src={theme === 'dark' ? LogoBlanco : LogoNegro} alt="FlyDoc Logo" height={42} style={{ width: 'auto' }} />
                     </div>
                 )}
                 <button
@@ -208,7 +222,7 @@ const NavigationSidebar: React.FC<NavigationSidebarProps> = ({ currentFolderId, 
                         justifyContent: 'center',
                         marginLeft: isCollapsed ? 'auto' : '0',
                         marginRight: isCollapsed ? 'auto' : '0',
-                        color: '#cacacaff'
+                        color: 'var(--text-secondary)'
                     }}
                     title={isCollapsed ? "Expandir menu" : "Contraer menu"}
                 >
