@@ -45,12 +45,15 @@ const Toast = ({ isVisible, message }: ToastProps) => {
             borderRadius: '50%',
             animation: 'spin 0.8s linear infinite',
           }} />
-          <span style={{
-            fontSize: '0.9rem',
-            fontWeight: 500,
-            color: 'var(--text-main)',
-            letterSpacing: '0.3px'
-          }}>
+          <span
+            className="toast-text"
+            style={{
+              fontSize: '0.9rem',
+              fontWeight: 500,
+              color: 'var(--text-main)',
+              letterSpacing: '0.3px'
+            }}
+          >
             {message}
           </span>
 
@@ -59,6 +62,9 @@ const Toast = ({ isVisible, message }: ToastProps) => {
               @keyframes spin {
                 from { transform: rotate(0deg); }
                 to { transform: rotate(360deg); }
+              }
+              .dark .toast-text {
+                color: #000000 !important;
               }
             `
           }} />

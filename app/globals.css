@@ -35,9 +35,9 @@ html.dark {
   /* Windows 11 dark sidebar color */
   --explorer-bg: #171c22;
   /* Windows 11 dark main explorer background */
-  --border-color: #bed1f5;
+  --border-color: #3b3b3b;
   /* Contrasting dark border color */
-  --text-main: #f5f6f8;
+  --text-main: #e0dede;
   /* Crisp white text */
   --text-secondary: #909bb0;
   /* Balanced secondary text */
